@@ -9,7 +9,6 @@ import com.beanbeanjuice.simpleproxychat.commands.ban.VelocityBanCommand;
 import com.beanbeanjuice.simpleproxychat.commands.ban.VelocityUnbanCommand;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
 import com.beanbeanjuice.simpleproxychat.common.CommonUpdateChecker;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.socket.VelocityPluginMessagingListener;
 import com.beanbeanjuice.simpleproxychat.shared.helper.BanHelper;
 import com.beanbeanjuice.simpleproxychat.shared.ISimpleProxyChat;
@@ -156,7 +155,7 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
                         this.getLogger().info(Helper.sanitize(message));
                         this.proxyServer.getAllPlayers()
                                 .stream()
-                                .filter((player) -> player.hasPermission(Permission.READ_UPDATE_NOTIFICATION.getPermissionNode()))
+                                .filter((player) -> player.hasPermission(Permission.READ_UPDATE_NOTIFICATION.getNode()))
                                 .forEach((player) -> player.sendMessage(Helper.stringToComponent(config.get(ConfigKey.PLUGIN_PREFIX).asString() + message)));
                     });
                 })

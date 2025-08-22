@@ -61,7 +61,7 @@ public class VelocityChatMessageData extends ChatMessageData {
                 .filter((streamPlayer) -> !blacklistedUUIDs.contains(streamPlayer))
                 .filter((streamPlayer) -> {
                     if (!plugin.getConfig().get(ConfigKey.USE_PERMISSIONS).asBoolean()) return true;
-                    return streamPlayer.hasPermission(Permission.READ_CHAT_MESSAGE.getPermissionNode());
+                    return streamPlayer.hasPermission(Permission.MESSAGES_READ_MINECRAFT_SWITCH.getNode());
                 })
                 .filter((streamPlayer) -> !VelocityServerListener.playerIsInDisabledServer(streamPlayer, plugin))
                 .forEach((streamPlayer) -> streamPlayer.sendMessage(component));

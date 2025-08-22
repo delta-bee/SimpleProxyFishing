@@ -4,24 +4,30 @@ import lombok.Getter;
 
 public enum Permission {
 
-    READ_CHAT_MESSAGE("simpleproxychat.read.chat"),
-    READ_JOIN_MESSAGE("simpleproxychat.read.join"),
-    READ_LEAVE_MESSAGE("simpleproxychat.read.leave"),
-    READ_FAKE_MESSAGE("simpleproxychat.read.fake"),
-    READ_SWITCH_MESSAGE("simpleproxychat.read.switch"),
-    READ_UPDATE_NOTIFICATION("simpleproxychat.read.update"),
-    COMMAND_TOGGLE_CHAT("simpleproxychat.toggle.chat"),
-    COMMAND_TOGGLE_CHAT_ALL("simpleproxychat.toggle.chat.all"),
-    COMMAND_RELOAD("simpleproxychat.reload"),
-    COMMAND_BAN("simpleproxychat.ban"),
-    COMMAND_UNBAN("simpleproxychat.unban"),
-    COMMAND_WHISPER("simpleproxychat.whisper"),
-    COMMAND_BROADCAST("simpleproxychat.broadcast");
+    // Minecraft Chat (Read + Write)
+    MESSAGES_READ_MINECRAFT_JOIN("simpleproxychat.read.minecraft.join"),
+    MESSAGES_READ_MINECRAFT_LEAVE("simpleproxychat.read.minecraft.leave"),
+    MESSAGES_READ_MINECRAFT_CHAT("simpleproxychat.read.minecraft.chat"),
+    MESSAGES_READ_DISCORD_CHAT("simpleproxychat.read.discord.chat"),
+    MESSAGES_READ_MINECRAFT_SWITCH("simpleproxychat.read.minecraft.switch"),
 
-    @Getter private final String permissionNode;
+    // Minecraft Admin Messages
+    READ_FAKE_MESSAGE("simpleproxychat.read.admin.fake"),
+    READ_UPDATE_NOTIFICATION("simpleproxychat.read.admin.update"),
 
-    Permission(String permissionNode) {
-        this.permissionNode = permissionNode;
+    // Minecraft Commands
+    COMMAND_WHISPER("simpleproxychat.command.whisper"),
+    COMMAND_TOGGLE_CHAT("simpleproxychat.command.toggle.chat"),
+    COMMAND_TOGGLE_CHAT_ALL("simpleproxychat.command.toggle.chat.all"),
+    COMMAND_RELOAD("simpleproxychat.command.reload"),
+    COMMAND_BAN("simpleproxychat.command.ban"),
+    COMMAND_UNBAN("simpleproxychat.command.unban"),
+    COMMAND_BROADCAST("simpleproxychat.command.broadcast");
+
+    @Getter private final String node;
+
+    Permission(String node) {
+        this.node = node;
     }
 
 }

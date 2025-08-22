@@ -185,7 +185,7 @@ public class BungeeServerListener implements Listener {
                         .filter((streamPlayer) -> streamPlayer != player)
                         .filter((streamPlayer) -> {
                             if (plugin.getConfig().get(ConfigKey.USE_PERMISSIONS).asBoolean())
-                                return streamPlayer.hasPermission(Permission.READ_SWITCH_MESSAGE.getPermissionNode());
+                                return streamPlayer.hasPermission(Permission.MESSAGES_READ_MINECRAFT_SWITCH.getNode());
                             return true;
                         })
                         .forEach((streamPlayer) -> streamPlayer.sendMessage(ChatMessageType.CHAT, Helper.convertToBungee(message))),
@@ -209,7 +209,7 @@ public class BungeeServerListener implements Listener {
         plugin.getProxy().getPlayers().stream()
                 .filter((player) -> {
                     if (plugin.getConfig().get(ConfigKey.USE_PERMISSIONS).asBoolean())
-                        return player.hasPermission(permission.getPermissionNode());
+                        return player.hasPermission(permission.getNode());
                     return true;
                 })
                 .filter((player) -> {
@@ -226,12 +226,12 @@ public class BungeeServerListener implements Listener {
         plugin.getProxy().getPlayers().stream()
                 .filter((player) -> {
                     if (plugin.getConfig().get(ConfigKey.USE_PERMISSIONS).asBoolean())
-                        return player.hasPermission(permission.getPermissionNode());
+                        return player.hasPermission(permission.getNode());
                     return true;
                 })
                 .filter((player) -> {
                     if (plugin.getConfig().get(ConfigKey.USE_PERMISSIONS).asBoolean())
-                        return player.hasPermission(Permission.READ_FAKE_MESSAGE.getPermissionNode());
+                        return player.hasPermission(Permission.READ_FAKE_MESSAGE.getNode());
                     return true;
                 })
                 .forEach((player) -> player.sendMessage(ChatMessageType.CHAT, Helper.convertToBungee(parsedMessage)));

@@ -2,7 +2,6 @@ package com.beanbeanjuice.simpleproxychat.commands;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatVelocity;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.shared.config.Config;
 import com.beanbeanjuice.simpleproxychat.shared.config.ConfigKey;
 import com.beanbeanjuice.simpleproxychat.shared.config.Permission;
@@ -54,7 +53,7 @@ public class VelocityBroadcastCommand implements SimpleCommand {
 
     @Override
     public boolean hasPermission(Invocation invocation) {
-        return invocation.source().hasPermission(Permission.COMMAND_BROADCAST.getPermissionNode());
+        return invocation.source().hasPermission(Permission.COMMAND_BROADCAST.getNode());
     }
 
 }

@@ -2,7 +2,6 @@ package com.beanbeanjuice.simpleproxychat.commands;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatBungee;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.shared.config.Config;
 import com.beanbeanjuice.simpleproxychat.shared.config.ConfigKey;
 import com.beanbeanjuice.simpleproxychat.shared.config.Permission;
@@ -20,7 +19,7 @@ public class BungeeBroadcastCommand extends Command {
     private final Config config;
 
     public BungeeBroadcastCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("Spc-broadcast", Permission.COMMAND_BROADCAST.getPermissionNode(), aliases);
+        super("Spc-broadcast", Permission.COMMAND_BROADCAST.getNode(), aliases);
 
         this.plugin = plugin;
         this.config = plugin.getConfig();

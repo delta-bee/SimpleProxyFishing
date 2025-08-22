@@ -2,7 +2,6 @@ package com.beanbeanjuice.simpleproxychat.commands.whisper;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatVelocity;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.shared.helper.Helper;
 import com.beanbeanjuice.simpleproxychat.shared.config.Config;
 import com.beanbeanjuice.simpleproxychat.shared.config.ConfigKey;
@@ -69,6 +68,6 @@ public class VelocityWhisperCommand implements SimpleCommand {
 
     @Override
     public boolean hasPermission(Invocation invocation) {
-        return invocation.source().hasPermission(Permission.COMMAND_WHISPER.getPermissionNode());
+        return invocation.source().hasPermission(Permission.COMMAND_WHISPER.getNode());
     }
 }

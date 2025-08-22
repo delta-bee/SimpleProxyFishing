@@ -2,7 +2,6 @@ package com.beanbeanjuice.simpleproxychat.commands.ban;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatVelocity;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.shared.config.Config;
 import com.beanbeanjuice.simpleproxychat.shared.config.ConfigKey;
 import com.beanbeanjuice.simpleproxychat.shared.config.Permission;
@@ -71,7 +70,7 @@ public class VelocityBanCommand implements SimpleCommand {
 
     @Override
     public boolean hasPermission(Invocation invocation) {
-        return invocation.source().hasPermission(Permission.COMMAND_BAN.getPermissionNode());
+        return invocation.source().hasPermission(Permission.COMMAND_BAN.getNode());
     }
 
 }

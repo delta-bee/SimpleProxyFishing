@@ -68,7 +68,7 @@ public class BungeeChatMessageData extends ChatMessageData {
                 })
                 .filter((streamPlayer) -> {
                     if (!plugin.getConfig().get(ConfigKey.USE_PERMISSIONS).asBoolean()) return true;
-                    return streamPlayer.hasPermission(Permission.READ_CHAT_MESSAGE.getPermissionNode());
+                    return streamPlayer.hasPermission(Permission.MESSAGES_READ_MINECRAFT_CHAT.getNode());
                 })
                 .filter((streamPlayer) -> !BungeeServerListener.playerIsInDisabledServer(streamPlayer, plugin))
                 .forEach((streamPlayer) -> streamPlayer.sendMessage(ChatMessageType.CHAT, convertToBungee(parsedMessage)));

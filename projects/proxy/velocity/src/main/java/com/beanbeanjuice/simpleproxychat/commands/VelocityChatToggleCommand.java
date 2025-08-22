@@ -2,7 +2,6 @@ package com.beanbeanjuice.simpleproxychat.commands;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatVelocity;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.shared.helper.Helper;
 import com.beanbeanjuice.simpleproxychat.shared.config.Config;
 import com.beanbeanjuice.simpleproxychat.shared.config.ConfigKey;
@@ -58,7 +57,7 @@ public class VelocityChatToggleCommand implements SimpleCommand {
     }
 
     private void executeAll(CommandSource sender, String type) {
-        if (!sender.hasPermission(Permission.COMMAND_TOGGLE_CHAT_ALL.getPermissionNode()) && sender instanceof Player) {
+        if (!sender.hasPermission(Permission.COMMAND_TOGGLE_CHAT_ALL.getNode()) && sender instanceof Player) {
             String message = config.get(ConfigKey.MINECRAFT_COMMAND_NO_PERMISSION).asString();
             message = CommonHelper.replaceKey(message, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
             sender.sendMessage(Helper.stringToComponent(message));
@@ -86,7 +85,7 @@ public class VelocityChatToggleCommand implements SimpleCommand {
     }
 
     private void executeSingle(CommandSource sender, String type) {
-        if (!sender.hasPermission(Permission.COMMAND_TOGGLE_CHAT.getPermissionNode()) && sender instanceof Player) {
+        if (!sender.hasPermission(Permission.COMMAND_TOGGLE_CHAT.getNode()) && sender instanceof Player) {
             String message = config.get(ConfigKey.MINECRAFT_COMMAND_NO_PERMISSION).asString();
             message = CommonHelper.replaceKey(message, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
             sender.sendMessage(Helper.stringToComponent(message));

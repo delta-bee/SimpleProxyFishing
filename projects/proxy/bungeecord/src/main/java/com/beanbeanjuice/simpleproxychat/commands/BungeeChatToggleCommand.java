@@ -2,7 +2,6 @@ package com.beanbeanjuice.simpleproxychat.commands;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatBungee;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.shared.helper.Helper;
 import com.beanbeanjuice.simpleproxychat.shared.config.Config;
 import com.beanbeanjuice.simpleproxychat.shared.config.ConfigKey;
@@ -50,7 +49,7 @@ public class BungeeChatToggleCommand extends Command implements TabExecutor {
     }
 
     private void executeAll(CommandSender sender, String type) {
-        if (!sender.hasPermission(Permission.COMMAND_TOGGLE_CHAT_ALL.getPermissionNode()) && sender instanceof ProxiedPlayer) {
+        if (!sender.hasPermission(Permission.COMMAND_TOGGLE_CHAT_ALL.getNode()) && sender instanceof ProxiedPlayer) {
             String message = config.get(ConfigKey.MINECRAFT_COMMAND_NO_PERMISSION).asString();
             message = CommonHelper.replaceKey(message, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
             sender.sendMessage(Helper.convertToBungee(message));
@@ -79,7 +78,7 @@ public class BungeeChatToggleCommand extends Command implements TabExecutor {
     }
 
     private void executeSingle(CommandSender sender, String type) {
-        if (!sender.hasPermission(Permission.COMMAND_TOGGLE_CHAT.getPermissionNode()) && sender instanceof ProxiedPlayer) {
+        if (!sender.hasPermission(Permission.COMMAND_TOGGLE_CHAT.getNode()) && sender instanceof ProxiedPlayer) {
             String message = config.get(ConfigKey.MINECRAFT_COMMAND_NO_PERMISSION).asString();
             message = CommonHelper.replaceKey(message, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
             sender.sendMessage(Helper.convertToBungee(message));

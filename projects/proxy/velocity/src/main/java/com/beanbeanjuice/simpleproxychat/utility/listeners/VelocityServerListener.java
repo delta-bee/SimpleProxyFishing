@@ -173,7 +173,7 @@ public class VelocityServerListener {
                             .filter((streamPlayer) -> streamPlayer != event.getPlayer())
                             .filter((player) -> {
                                 if (plugin.getConfig().get(ConfigKey.USE_PERMISSIONS).asBoolean())
-                                    return player.hasPermission(Permission.READ_SWITCH_MESSAGE.getPermissionNode());
+                                    return player.hasPermission(Permission.MESSAGES_READ_MINECRAFT_SWITCH.getNode());
                                 return true;
                             })
                             .forEach((streamPlayer) -> streamPlayer.sendMessage(component));
@@ -186,7 +186,7 @@ public class VelocityServerListener {
         plugin.getProxyServer().getAllPlayers().stream()
                         .filter((player) -> {
                             if (plugin.getConfig().get(ConfigKey.USE_PERMISSIONS).asBoolean())
-                                return player.hasPermission(permission.getPermissionNode());
+                                return player.hasPermission(permission.getNode());
                             return true;
                         })
                         .filter((player) -> !playerIsInDisabledServer(player, plugin))

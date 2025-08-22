@@ -2,7 +2,6 @@ package com.beanbeanjuice.simpleproxychat.commands.whisper;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatBungee;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.shared.helper.Helper;
 import com.beanbeanjuice.simpleproxychat.shared.config.Config;
 import com.beanbeanjuice.simpleproxychat.shared.config.ConfigKey;
@@ -21,7 +20,7 @@ public class BungeeWhisperCommand extends Command implements TabExecutor {
     private final Config config;
 
     public BungeeWhisperCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("Spc-whisper", Permission.COMMAND_WHISPER.getPermissionNode(), aliases);
+        super("Spc-whisper", Permission.COMMAND_WHISPER.getNode(), aliases);
         this.plugin = plugin;
         this.config = plugin.getConfig();
     }

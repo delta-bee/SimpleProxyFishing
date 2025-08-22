@@ -2,7 +2,6 @@ package com.beanbeanjuice.simpleproxychat.commands.ban;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatBungee;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.shared.config.Config;
 import com.beanbeanjuice.simpleproxychat.shared.config.ConfigKey;
 import com.beanbeanjuice.simpleproxychat.shared.config.Permission;
@@ -21,7 +20,7 @@ public class BungeeBanCommand extends Command implements TabExecutor {
     private final Config config;
 
     public BungeeBanCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("Spc-ban", Permission.COMMAND_BAN.getPermissionNode(), aliases);
+        super("Spc-ban", Permission.COMMAND_BAN.getNode(), aliases);
         this.plugin = plugin;
         this.config = plugin.getConfig();
     }

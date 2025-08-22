@@ -9,7 +9,6 @@ import com.beanbeanjuice.simpleproxychat.commands.whisper.BungeeReplyCommand;
 import com.beanbeanjuice.simpleproxychat.commands.whisper.BungeeWhisperCommand;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
 import com.beanbeanjuice.simpleproxychat.common.CommonUpdateChecker;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.listeners.BungeeServerListener;
 import com.beanbeanjuice.simpleproxychat.listeners.BungeeVanishListener;
 import com.beanbeanjuice.simpleproxychat.shared.ISimpleProxyChat;
@@ -131,7 +130,7 @@ public final class SimpleProxyChatBungee extends Plugin implements ISimpleProxyC
                         Component minimessage = MiniMessage.miniMessage().deserialize(config.get(ConfigKey.PLUGIN_PREFIX).asString() + message);
                         this.getProxy().getPlayers()
                                 .stream()
-                                .filter((player) -> player.hasPermission(Permission.READ_UPDATE_NOTIFICATION.getPermissionNode()))
+                                .filter((player) -> player.hasPermission(Permission.READ_UPDATE_NOTIFICATION.getNode()))
                                 .forEach((player) -> player.sendMessage(ChatMessageType.CHAT, BungeeComponentSerializer.get().serialize(minimessage)));
 
                     });

@@ -2,7 +2,6 @@ package com.beanbeanjuice.simpleproxychat.commands.whisper;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatVelocity;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.shared.helper.Helper;
 import com.beanbeanjuice.simpleproxychat.shared.config.Config;
 import com.beanbeanjuice.simpleproxychat.shared.config.ConfigKey;
@@ -10,9 +9,7 @@ import com.beanbeanjuice.simpleproxychat.shared.config.Permission;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class VelocityReplyCommand implements SimpleCommand {
@@ -55,7 +52,7 @@ public class VelocityReplyCommand implements SimpleCommand {
 
     @Override
     public boolean hasPermission(Invocation invocation) {
-        return invocation.source().hasPermission(Permission.COMMAND_WHISPER.getPermissionNode());
+        return invocation.source().hasPermission(Permission.COMMAND_WHISPER.getNode());
     }
 
 }

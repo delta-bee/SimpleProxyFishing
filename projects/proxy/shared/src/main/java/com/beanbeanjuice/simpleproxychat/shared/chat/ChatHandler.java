@@ -183,7 +183,7 @@ public class ChatHandler {
         }
 
         // Log to Minecraft
-        if (config.get(ConfigKey.MINECRAFT_LEAVE_ENABLED).asBoolean()) minecraftLogger.accept(message, Permission.READ_LEAVE_MESSAGE);
+        if (config.get(ConfigKey.MINECRAFT_LEAVE_ENABLED).asBoolean()) minecraftLogger.accept(message, Permission.MESSAGES_READ_MINECRAFT_LEAVE);
     }
 
     public void runProxyJoinMessage(String playerName, UUID playerUUID, String serverName,
@@ -225,7 +225,7 @@ public class ChatHandler {
 
         // Log to Minecraft
         if (config.get(ConfigKey.MINECRAFT_JOIN_ENABLED).asBoolean())
-            minecraftLogger.accept(message, Permission.READ_JOIN_MESSAGE);
+            minecraftLogger.accept(message, Permission.MESSAGES_READ_MINECRAFT_JOIN);
     }
 
     public void runProxySwitchMessage(String from, String to, String playerName, UUID playerUUID,
