@@ -60,13 +60,6 @@ public class BungeeChatMessageData extends ChatMessageData {
         plugin.getProxy().getPlayers().stream()
                 .filter((streamPlayer) -> !blacklistedPlayers.contains(streamPlayer))
                 .filter((streamPlayer) -> {
-                    if (blacklistedPlayers.contains(streamPlayer)) return false;
-                    if (blacklistedPlayers.stream().map(ProxiedPlayer::getName).toList().contains(streamPlayer.getName())) return false;
-                    if (blacklistedPlayers.stream().map(ProxiedPlayer::getUniqueId).toList().contains(streamPlayer.getUniqueId())) return false;
-
-                    return true;
-                })
-                .filter((streamPlayer) -> {
                     if (!plugin.getConfig().get(ConfigKey.USE_PERMISSIONS).asBoolean()) return true;
                     return streamPlayer.hasPermission(Permission.MESSAGES_READ_MINECRAFT_CHAT.getNode());
                 })

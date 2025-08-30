@@ -16,7 +16,7 @@ import java.util.Collection;
 
 public class VelocityChatMessageData extends ChatMessageData {
 
-    private SimpleProxyChatVelocity plugin;
+    private final SimpleProxyChatVelocity plugin;
     @Getter private final RegisteredServer server;
 
     public VelocityChatMessageData(SimpleProxyChatVelocity plugin, MessageType type, RegisteredServer server,
@@ -58,14 +58,13 @@ public class VelocityChatMessageData extends ChatMessageData {
         Component component = MiniMessage.miniMessage().deserialize(parsedMessage);
 
         plugin.getProxyServer().getAllPlayers().stream()
-                .filter((streamPlayer) -> !blacklistedUUIDs.contains(streamPlayer))
+                .filter((streamPlayer) -> !blacklistedUUIDs.contains(streamPlayer)) // Players in same server.
                 .filter((streamPlayer) -> {
                     if (!plugin.getConfig().get(ConfigKey.USE_PERMISSIONS).asBoolean()) return true;
-                    return streamPlayer.hasPermission(Permission.MESSAGES_READ_MINECRAFT_SWITCH.getNode());
+                    return streamPlayer.hasPermission(Permission.MESSAGES_READ_MINECRAFT_CHAT.getNode());
                 })
                 .filter((streamPlayer) -> !VelocityServerListener.playerIsInDisabledServer(streamPlayer, plugin))
                 .forEach((streamPlayer) -> streamPlayer.sendMessage(component));
-
     }
 
     @Override
