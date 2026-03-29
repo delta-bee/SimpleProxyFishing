@@ -35,7 +35,8 @@ allprojects {
         implementation("org.bstats", "bstats-bukkit", "3.1.0")
 
         // Mock Testing
-        testImplementation("org.mockbukkit.mockbukkit", "mockbukkit-v1.21", "4.72.6")
+        testImplementation("org.mockbukkit.mockbukkit", "mockbukkit-v1.21", "4.108.0")
+        testImplementation("io.papermc.paper", "paper-api", "1.21.11-R0.1-SNAPSHOT")
 
         // Artifact Version Comparison
         // TODO: Eventually remove this.

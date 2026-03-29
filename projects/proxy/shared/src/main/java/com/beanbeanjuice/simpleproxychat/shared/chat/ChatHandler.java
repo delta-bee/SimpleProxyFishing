@@ -48,7 +48,7 @@ public class ChatHandler {
         this.discordBot = plugin.getDiscordBot();
         this.lastMessagesHelper = new LastMessagesHelper(plugin.getSPCConfig());
 
-        plugin.getDiscordBot().addRunnableToQueue(() -> plugin.getDiscordBot().getJDA().ifPresent((jda) -> jda.addEventListener(new DiscordChatHandler(config, this::sendFromDiscord))));
+        plugin.getDiscordBot().addRunnableToQueue(() -> plugin.getDiscordBot().getJDA().ifPresent((jda) -> jda.addEventListener(new DiscordChatHandler(config, jda.getSelfUser().getId(), this::sendFromDiscord))));
     }
 
     private Optional<String> getValidMessage(String message) {
@@ -298,20 +298,18 @@ public class ChatHandler {
     public void sendFromDiscord(MessageReceivedEvent event) {
         String message = config.get(ConfigKey.DISCORD_CHAT_MINECRAFT_MESSAGE).asString();
 
-        if (event.getMember() == null) return;
-
-        String username = event.getMember().getUser().getName();
-        String nickname = event.getMember().getNickname();
-
-        if (nickname == null) nickname = username;
-
+        String username = event.getAuthor().getName();
+        String nickname = username;
         String roleName = "[no-role]";
         Color roleColor = Color.GRAY;
-        if (!event.getMember().getRoles().isEmpty()) {
-            Role role = event.getMember().getRoles().get(0);
-            roleName = role.getName();
 
-            if (role.getColor() != null) roleColor = role.getColor();
+        if (event.getMember() != null) {
+            if (event.getMember().getNickname() != null) nickname = event.getMember().getNickname();
+            if (!event.getMember().getRoles().isEmpty()) {
+                Role role = event.getMember().getRoles().get(0);
+                roleName = role.getName();
+                if (role.getColor() != null) roleColor = role.getColor();
+            }
         }
 
         String discordMessage = event.getMessage().getContentStripped();
