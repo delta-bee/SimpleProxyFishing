@@ -28,7 +28,7 @@ public class BungeeCordPluginMessagingListener implements Listener {
 
         ByteArrayDataInput input = ByteStreams.newDataInput(event.getData());
 
-        if (!input.readUTF().equals("SimpleProxyChat")) return;
+        if (!input.readUTF().equals("AdvancedProxyChat")) return;
 
         MessageType type = MessageType.valueOf(input.readUTF());
 

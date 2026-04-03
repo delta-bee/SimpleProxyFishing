@@ -1,7 +1,7 @@
-package com.beanbeanjuice.simpleproxychathelper.test.shared.config;
+package com.beanbeanjuice.advancedproxychathelper.test.shared.config;
 
-import com.beanbeanjuice.simpleproxychathelper.shared.config.Config;
-import com.beanbeanjuice.simpleproxychathelper.shared.config.ConfigKey;
+import com.beanbeanjuice.advancedproxychathelper.shared.config.Config;
+import com.beanbeanjuice.advancedproxychathelper.shared.config.ConfigKey;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

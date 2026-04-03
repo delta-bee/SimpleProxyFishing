@@ -28,7 +28,7 @@ public class BungeeUnbanCommand extends Command implements TabExecutor {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (!config.get(ConfigKey.USE_SIMPLE_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
+        if (!config.get(ConfigKey.USE_ADVANCED_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
             sender.sendMessage(Helper.convertToBungee("&cThe banning system is disabled..."));
             return;
         }

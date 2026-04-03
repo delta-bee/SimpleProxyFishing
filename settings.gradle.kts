@@ -1,4 +1,4 @@
-rootProject.name = "SimpleProxyChat"
+rootProject.name = "AdvancedProxyChat"
 
 include(
     "projects:common",
@@ -11,6 +11,6 @@ include(
     "projects:server:spigot"
 )
 
-project(":projects:proxy:velocity").name = "SimpleProxyChat-Velocity"
-project(":projects:proxy:bungeecord").name = "SimpleProxyChat-BungeeCord"
-project(":projects:server:spigot").name = "SimpleProxyChatHelper-Spigot"
+project(":projects:proxy:velocity").name = "AdvancedProxyChat-Velocity"
+project(":projects:proxy:bungeecord").name = "AdvancedProxyChat-BungeeCord"
+project(":projects:server:spigot").name = "AdvancedProxyChatHelper-Spigot"

@@ -35,6 +35,9 @@ public class Bot {
 
     private final Queue<Runnable> runnableQueue;
 
+    /** Registry populated after JDA is ready. {@code null} until then. */
+    private ChannelRegistry channelRegistry;
+
     private boolean channelTopicErrorSent = false;
 
     public Bot(final Config config, final Consumer<String> errorLogger, final Supplier<Integer> getOnlinePlayers, final Supplier<Integer> getMaxPlayers) {
@@ -99,6 +102,98 @@ public class Bot {
         return Optional.ofNullable(bot.getTextChannelById(config.get(ConfigKey.CHANNEL_ID).asString()));
     }
 
+    // ---- Per-channel multi-channel helpers ----
+
+    /** Look up a Discord {@link TextChannel} by its raw channel ID. */
+    public Optional<TextChannel> getTextChannel(String channelId) {
+        if (bot == null) return Optional.empty();
+        return Optional.ofNullable(bot.getTextChannelById(channelId));
+    }
+
+    /**
+     * Send a plain-text message to the Discord channel described by {@code channel}.
+     * Respects {@link ChannelDefinition#isDisableSend()}.
+     */
+    public void sendMessage(final ChannelDefinition channel, final String messageToSend) {
+        if (bot == null) return;
+        if (channel.isDisableSend()) return;
+
+        getTextChannel(channel.getChannelId()).ifPresentOrElse(
+                (textChannel) -> {
+                    String message = Helper.sanitize(messageToSend);
+                    message = Arrays.stream(message.split(" ")).map((originalString) -> {
+                        if (!originalString.startsWith("@")) return originalString;
+                        String name = originalString.replace("@", "");
+                        List<Member> potentialMembers = textChannel.getMembers();
+                        Optional<Member> potentialMember = potentialMembers.stream()
+                                .filter((member) -> ((member.getNickname() != null && member.getNickname().equalsIgnoreCase(name)) || member.getEffectiveName().equalsIgnoreCase(name)))
+                                .findFirst();
+                        return potentialMember.map(IMentionable::getAsMention).orElse(originalString);
+                    }).collect(Collectors.joining(" "));
+                    textChannel.sendMessage(message).queue();
+                },
+                () -> errorLogger.accept("There was an error sending a message to Discord channel '" + channel.getName() + "'. Does the channel exist?")
+        );
+    }
+
+    /**
+     * Send a plain-text message directly to a Discord channel identified by its snowflake ID.
+     * Used by the {@code !flag} routing in {@link com.beanbeanjuice.simpleproxychat.shared.chat.ChatHandler}.
+     */
+    public void sendMessageToChannel(final String channelId, final String messageToSend) {
+        if (bot == null) return;
+        getTextChannel(channelId).ifPresentOrElse(
+                (textChannel) -> textChannel.sendMessage(Helper.sanitize(messageToSend)).queue(),
+                () -> errorLogger.accept("There was an error sending a message to Discord channel ID '" + channelId + "'. Does the channel exist?")
+        );
+    }
+
+    /**
+     * Send a {@link MessageEmbed} to the Discord channel described by {@code channel}.
+     * Respects {@link ChannelDefinition#isDisableSend()}.
+     * The embed must already be sanitized before calling this method.
+     */
+    public void sendMessageEmbed(final ChannelDefinition channel, final MessageEmbed embed) {
+        if (bot == null) return;
+        if (channel.isDisableSend()) return;
+
+        getTextChannel(channel.getChannelId()).ifPresentOrElse(
+                (textChannel) -> textChannel.sendMessageEmbeds(sanitizeEmbed(embed)).queue(),
+                () -> errorLogger.accept("There was an error sending an embed to Discord channel '" + channel.getName() + "'. Does the channel exist?")
+        );
+    }
+
+    /**
+     * Update the topic of the Discord channel described by {@code channel}.
+     * Respects {@link ChannelDefinition#isDisableSend()}.
+     */
+    public void updateChannelTopic(final ChannelDefinition channel, final String topic) {
+        if (bot == null) return;
+        if (channel.isDisableSend()) return;
+
+        getTextChannel(channel.getChannelId()).ifPresentOrElse(
+                (textChannel) -> {
+                    try {
+                        textChannel.getManager().setTopic(topic).queue();
+                    } catch (InsufficientPermissionException e) {
+                        if (!channelTopicErrorSent) {
+                            channelTopicErrorSent = true;
+                            errorLogger.accept("No permission to edit channel topic for '" + channel.getName() + "'. " +
+                                    "If you don't want the channel topics to be updated, simply ignore this message. " +
+                                    "Otherwise, please give the Discord bot the MANAGE_CHANNELS permission. " +
+                                    "This message will only be sent once per server restart.");
+                        }
+                    }
+                },
+                () -> errorLogger.accept("There was an error updating the Discord channel topic for '" + channel.getName() + "'. Does the channel exist?")
+        );
+    }
+
+    /** Returns the current {@link ChannelRegistry}, or {@code null} if JDA has not started yet. */
+    public ChannelRegistry getChannelRegistry() {
+        return channelRegistry;
+    }
+
     private MessageEmbed sanitizeEmbed(final MessageEmbed oldEmbed) {
         EmbedBuilder embedBuilder = new EmbedBuilder(oldEmbed);
 
@@ -161,8 +256,14 @@ public class Bot {
 
     public void channelUpdaterFunction() {
         if (bot == null) return;
-        String topicMessage = config.get(ConfigKey.DISCORD_TOPIC_ONLINE).asString().replace("%online%", String.valueOf(getOnlinePlayers.get()));
-        this.updateChannelTopic(topicMessage);
+        String topicMessage = config.get(ConfigKey.DISCORD_TOPIC_ONLINE).asString()
+                .replace("%online%", String.valueOf(getOnlinePlayers.get()));
+
+        if (channelRegistry != null && !channelRegistry.isEmpty()) {
+            channelRegistry.all().forEach((ch) -> updateChannelTopic(ch, topicMessage));
+        } else {
+            this.updateChannelTopic(topicMessage);
+        }
     }
 
     public Optional<JDA> getJDA() {
@@ -185,6 +286,9 @@ public class Bot {
                 .setChunkingFilter(ChunkingFilter.ALL)
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
                 .build().awaitReady();
+
+        // Sync the channel registry from config now that JDA is ready.
+        this.channelRegistry = config.getChannelRegistry();
 
         sendProxyStatus(true);
 
@@ -253,7 +357,12 @@ public class Bot {
         if (bot == null) return;
         sendProxyStatus(false);
 
-        this.updateChannelTopic(config.get(ConfigKey.DISCORD_TOPIC_OFFLINE).asString());
+        String offlineTopic = config.get(ConfigKey.DISCORD_TOPIC_OFFLINE).asString();
+        if (channelRegistry != null && !channelRegistry.isEmpty()) {
+            channelRegistry.all().forEach((ch) -> updateChannelTopic(ch, offlineTopic));
+        } else {
+            this.updateChannelTopic(offlineTopic);
+        }
 
         this.getJDA().ifPresent((jda) -> {
             try {

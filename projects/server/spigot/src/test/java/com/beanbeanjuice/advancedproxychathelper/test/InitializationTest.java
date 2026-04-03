@@ -1,6 +1,6 @@
-package com.beanbeanjuice.simpleproxychathelper.test;
+package com.beanbeanjuice.advancedproxychathelper.test;
 
-import com.beanbeanjuice.simpleproxychathelper.SimpleProxyChatHelper;
+import com.beanbeanjuice.advancedproxychathelper.AdvancedProxyChatHelper;
 import org.junit.jupiter.api.*;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
@@ -9,12 +9,12 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 public class InitializationTest {
 
     private ServerMock server;
-    private SimpleProxyChatHelper plugin;
+    private AdvancedProxyChatHelper plugin;
 
     @BeforeEach
     public void setUp() {
         server = MockBukkit.mock();
-        plugin = MockBukkit.load(SimpleProxyChatHelper.class);
+        plugin = MockBukkit.load(AdvancedProxyChatHelper.class);
     }
 
     @AfterEach

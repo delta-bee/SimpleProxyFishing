@@ -3,10 +3,14 @@ package com.beanbeanjuice.simpleproxychat;
 import com.beanbeanjuice.simpleproxychat.commands.BungeeBroadcastCommand;
 import com.beanbeanjuice.simpleproxychat.commands.BungeeChatToggleCommand;
 import com.beanbeanjuice.simpleproxychat.commands.BungeeReloadCommand;
+import com.beanbeanjuice.simpleproxychat.commands.channel.BungeeChannelsCommand;
+import com.beanbeanjuice.simpleproxychat.commands.channel.BungeeHistoryCommand;
+import com.beanbeanjuice.simpleproxychat.commands.channel.BungeeListenCommand;
 import com.beanbeanjuice.simpleproxychat.commands.ban.BungeeBanCommand;
 import com.beanbeanjuice.simpleproxychat.commands.ban.BungeeUnbanCommand;
 import com.beanbeanjuice.simpleproxychat.commands.whisper.BungeeReplyCommand;
 import com.beanbeanjuice.simpleproxychat.commands.whisper.BungeeWhisperCommand;
+import com.beanbeanjuice.simpleproxychat.shared.channel.PlayerChannelPrefsManager;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
 import com.beanbeanjuice.simpleproxychat.common.CommonUpdateChecker;
 import com.beanbeanjuice.simpleproxychat.common.Tuple;
@@ -53,6 +57,7 @@ public final class SimpleProxyChatBungee extends Plugin implements ISimpleProxyC
     @Getter private BungeeServerListener serverListener;
     @Getter private WhisperHandler whisperHandler;
     @Getter private BanHelper banHelper;
+    @Getter private PlayerChannelPrefsManager channelPrefsManager;
     private PluginManager pluginManager;
 
     @Override
@@ -61,6 +66,7 @@ public final class SimpleProxyChatBungee extends Plugin implements ISimpleProxyC
 
         this.config = new Config(this.getDataFolder());
         this.config.initialize();
+        this.channelPrefsManager = new PlayerChannelPrefsManager();
 
         this.getLogger().info("Attempting to initialize Discord bot... (IF ENABLED)");
         discordBot = new Bot(this.config, this.getLogger()::warning, this::getOnlinePlayers, this::getMaxPlayers);
@@ -172,12 +178,12 @@ public final class SimpleProxyChatBungee extends Plugin implements ISimpleProxyC
         }
 
         // Registering the Simple Ban System
-        if (!this.isLiteBansEnabled() && !this.isAdvancedBanEnabled() && config.get(ConfigKey.USE_SIMPLE_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
-            getLogger().info("LiteBans and AdvancedBan not found. Using the built-in banning system for SimpleProxyChat...");
+        if (!this.isLiteBansEnabled() && !this.isAdvancedBanEnabled() && config.get(ConfigKey.USE_ADVANCED_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
+            getLogger().info("LiteBans and AdvancedBan not found. Using the built-in banning system for AdvancedProxyChat...");
             banHelper = new BanHelper(this.getDataFolder());
             banHelper.initialize();
         } else {
-            config.overwrite(ConfigKey.USE_SIMPLE_PROXY_CHAT_BANNING_SYSTEM, false);
+            config.overwrite(ConfigKey.USE_ADVANCED_PROXY_CHAT_BANNING_SYSTEM, false);
         }
     }
 
@@ -197,9 +203,12 @@ public final class SimpleProxyChatBungee extends Plugin implements ISimpleProxyC
         this.getProxy().getPluginManager().registerCommand(this, new BungeeWhisperCommand(this, config.get(ConfigKey.WHISPER_ALIASES).asList().toArray(new String[0])));
         this.getProxy().getPluginManager().registerCommand(this, new BungeeReplyCommand(this, config.get(ConfigKey.REPLY_ALIASES).asList().toArray(new String[0])));
         this.getProxy().getPluginManager().registerCommand(this, new BungeeBroadcastCommand(this, config.get(ConfigKey.BROADCAST_ALIASES).asList().toArray(new String[0])));
+        this.getProxy().getPluginManager().registerCommand(this, new BungeeChannelsCommand(this, config.get(ConfigKey.CHANNELS_ALIASES).asList().toArray(new String[0])));
+        this.getProxy().getPluginManager().registerCommand(this, new BungeeListenCommand(this, config.get(ConfigKey.LISTEN_ALIASES).asList().toArray(new String[0])));
+        this.getProxy().getPluginManager().registerCommand(this, new BungeeHistoryCommand(this, config.get(ConfigKey.HISTORY_ALIASES).asList().toArray(new String[0])));
 
         // Only enable when needed.
-        if (config.get(ConfigKey.USE_SIMPLE_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
+        if (config.get(ConfigKey.USE_ADVANCED_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
             this.getProxy().getPluginManager().registerCommand(this, new BungeeBanCommand(this, config.get(ConfigKey.BAN_ALIASES).asList().toArray(new String[0])));
             this.getProxy().getPluginManager().registerCommand(this, new BungeeUnbanCommand(this, config.get(ConfigKey.UNBAN_ALIASES).asList().toArray(new String[0])));
         }
@@ -301,6 +310,23 @@ public final class SimpleProxyChatBungee extends Plugin implements ISimpleProxyC
     @Override
     public void sendAll(String message) {
         this.getProxy().broadcast(Helper.convertToBungee(message));
+    }
+
+    @Override
+    public void sendPerPlayer(String message, java.util.function.Predicate<java.util.UUID> filter) {
+        net.md_5.bungee.api.chat.BaseComponent[] components = Helper.convertToBungee(message);
+        this.getProxy().getPlayers().stream()
+                .filter(p -> filter.test(p.getUniqueId()))
+                .forEach(p -> p.sendMessage(net.md_5.bungee.api.ChatMessageType.CHAT, components));
+    }
+
+    @Override
+    public void sendToPlayer(java.util.UUID playerId, String message) {
+        net.md_5.bungee.api.chat.BaseComponent[] components = Helper.convertToBungee(message);
+        this.getProxy().getPlayers().stream()
+                .filter(p -> p.getUniqueId().equals(playerId))
+                .findFirst()
+                .ifPresent(p -> p.sendMessage(net.md_5.bungee.api.ChatMessageType.CHAT, components));
     }
 
     @Override

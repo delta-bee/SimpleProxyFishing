@@ -20,7 +20,7 @@ bot-activity:
   # Valid Types: PLAYING, STREAMING, LISTENING, WATCHING, COMPETING, CUSTOM_STATUS
   type: "CUSTOM_STATUS"
   # Valid placeholders are %online% and/or %max-players% (UPDATES EVERY 5 MINUTES)
-  text: "%online%/%max-players% - SimpleProxyChat by beanbeanjuice"
+  text: "%online%/%max-players% - AdvancedProxyChat by beanbeanjuice"
 
 # The amount of seconds to check if a server is online/offline.
 # Smaller numbers can cause errors. Beware.
@@ -36,19 +36,22 @@ aliases:
 
 # Whether to use the permission system.
 # Some permissions (denoted with ➕) are always active even if this is false.
-# simpleproxychat.read.chat - Read chat messages.
-# simpleproxychat.read.join - Read join messages.
-# simpleproxychat.read.leave - Read leave messages.
-# simpleproxychat.read.fake - Read the fake join/leave messages. Players must also have the REAL join/leave permission.
-# simpleproxychat.read.switch - Read switch messages.
-# simpleproxychat.read.update - Read update messages. ➕
-# simpleproxychat.toggle.chat - Toggle proxy chat for a single server. ➕
-# simpleproxychat.toggle.chat.all - Toggle proxy chat for all servers. ➕
-# simpleproxychat.reload - Reload the config. ➕
-# simpleproxychat.ban - Ban a player from the proxy. ➕
-# simpleproxychat.unban - Unban a player from the proxy. ➕
-# simpleproxychat.whisper - Whisper to another player on the proxy. ➕
-# simpleproxychat.broadcast - Broadcast a message to everyone on the server. ➕
+# advancedproxychat.read.chat - Read chat messages.
+# advancedproxychat.read.join - Read join messages.
+# advancedproxychat.read.leave - Read leave messages.
+# advancedproxychat.read.fake - Read the fake join/leave messages. Players must also have the REAL join/leave permission.
+# advancedproxychat.read.switch - Read switch messages.
+# advancedproxychat.read.update - Read update messages. ➕
+# advancedproxychat.toggle.chat - Toggle proxy chat for a single server. ➕
+# advancedproxychat.toggle.chat.all - Toggle proxy chat for all servers. ➕
+# advancedproxychat.reload - Reload the config. ➕
+# advancedproxychat.ban - Ban a player from the proxy. ➕
+# advancedproxychat.unban - Unban a player from the proxy. ➕
+# advancedproxychat.whisper - Whisper to another player on the proxy. ➕
+# advancedproxychat.broadcast - Broadcast a message to everyone on the server. ➕
+# advancedproxychat.channels - View and toggle per-channel send/receive preferences. ➕
+# advancedproxychat.listen - Temporarily subscribe to a channel for N messages. ➕
+# advancedproxychat.history - View the last N messages from a channel. ➕
 use-permissions: false
 
 # Only messages that start with this character will be sent through the plugin.
@@ -77,7 +80,7 @@ update-notifications: true
 # It is HIGHLY recommended to use a more robust proxy-wide banning system such as LiteBans or AdvancedBan.
 # However, if you would rather a light-weight, simple, banning system. You can enable it here.
 # A FULL PROXY RESTART IS REQUIRED TO USE THIS.
-use-simple-proxy-chat-banning-system: false
+use-advanced-proxy-chat-banning-system: false
 
 # This will store and re-send the last few chat messages when a player switches servers.
 # This is here because sometimes Velocity/Bungee does not keep the previous messages when switching.
@@ -89,24 +92,61 @@ send-previous-messages-on-switch:
 # These require a restart in order to take place.
 commands:
   reload-aliases:
-    - "spcreload"
+    - "apc-reload"
   chat-toggle-aliases:
-    - "chattoggle"
+    - "apc-chat"
   ban-aliases:
-    - "spcban"
+    - "apc-ban"
   unban-aliases:
-    - "spcunban"
+    - "apc-unban"
   whisper-aliases:
-    - "spc-msg"
+    - "apc-msg"
   reply-aliases:
-    - "spc-r"
+    - "apc-r"
   broadcast-aliases:
-    - "spc-bc"
+    - "apc-bc"
     - "broadcast"
+  # Multi-channel Discord bridge commands.
+  channels-aliases:
+    - "apc-channels"
+  listen-aliases:
+    - "apc-listen"
+  history-aliases:
+    - "apc-history"
 
 # Disable servers from sending/receiving proxy messages.
 disabled-servers:
   - example1
 
+# ==========================================================
+#                    MULTI-CHANNEL DISCORD
+# Added in file-version 18 (AdvancedProxyChat).
+# Each entry below defines one Discord channel to bridge.
+# Players can route a message to a channel by typing
+#   !<prefix> message    (e.g.  !s hello  to send to "staff")
+#   !<prefix1><prefix2>  (stack multiple flags at once)
+# They can also toggle default send/receive per-channel via
+#   /channels  (or any configured alias)
+# and inspect history with  /apc-listen  and  /apc-history.
+# ==========================================================
+channels: []
+# Uncomment and edit the block below to add your first channel:
+#
+# channels:
+#   - name: "staff"               # Human-readable name, used in /channels and /apc-history.
+#     prefix: "s"                # Single letter used in the !-flag system.
+#     channel-id: "000000000000" # Discord channel snowflake ID.
+#     disable-send: false        # true -> Minecraft chat is never forwarded here.
+#     disable-receive: false     # true -> Messages from this channel never appear in-game.
+#     mc-to-discord: "[%channel%] **%server%** %player% » %message%"   # optional override
+#     discord-to-mc: "&8[&b%channel%&8] %role% &f%user% &9» &7%message%" # optional override
+#
+#   - name: "discord"
+#     prefix: "d"
+#     channel-id: "111111111111"
+#     disable-send: false
+#     disable-receive: false
+
+
 # DO NOT TOUCH THIS
-file-version: 16
+file-version: 18

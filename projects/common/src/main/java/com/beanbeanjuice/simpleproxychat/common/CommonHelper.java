@@ -16,6 +16,7 @@ public final class CommonHelper {
      * @see <a href="https://docs.advntr.dev/minimessage/format.html">Mini-Message Decorations</a>
      */
     public static String translateLegacyCodes(String string) {
+        if (string == null) return "";
         string = replaceEssentialsColorCodes(string);
         return string
                 .replace('§', '&')

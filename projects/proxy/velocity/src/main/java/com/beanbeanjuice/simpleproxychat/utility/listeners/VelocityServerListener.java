@@ -136,7 +136,7 @@ public class VelocityServerListener {
     public void onPreLoginEvent(PreLoginEvent event) {
         String playerName = event.getUsername();
 
-        if (!plugin.getConfig().get(ConfigKey.USE_SIMPLE_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) return;
+        if (!plugin.getConfig().get(ConfigKey.USE_ADVANCED_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) return;
         if (!plugin.getBanHelper().isBanned(playerName)) return;
 
         event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Helper.stringToComponent("&cYou are banned from the proxy.")));

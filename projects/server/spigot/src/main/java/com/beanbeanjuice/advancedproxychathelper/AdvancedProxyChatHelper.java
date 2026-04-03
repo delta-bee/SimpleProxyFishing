@@ -1,19 +1,19 @@
-package com.beanbeanjuice.simpleproxychathelper;
+package com.beanbeanjuice.advancedproxychathelper;
 
 import com.beanbeanjuice.simpleproxychat.common.CommonUpdateChecker;
-import com.beanbeanjuice.simpleproxychathelper.shared.config.Config;
-import com.beanbeanjuice.simpleproxychathelper.shared.config.ConfigKey;
+import com.beanbeanjuice.advancedproxychathelper.shared.config.Config;
+import com.beanbeanjuice.advancedproxychathelper.shared.config.ConfigKey;
 import lombok.Getter;
 
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class SimpleProxyChatHelper extends JavaPlugin {
+public class AdvancedProxyChatHelper extends JavaPlugin {
 
     private Metrics metrics;
     @Getter private Config options;
-    @Getter private static final String subChannel = "SimpleProxyChat";
+    @Getter private static final String subChannel = "AdvancedProxyChat";
 
     @Override
     public void onEnable() {

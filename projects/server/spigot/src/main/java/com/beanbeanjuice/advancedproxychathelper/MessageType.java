@@ -1,4 +1,4 @@
-package com.beanbeanjuice.simpleproxychathelper;
+package com.beanbeanjuice.advancedproxychathelper;
 
 public enum MessageType {
     CHAT,

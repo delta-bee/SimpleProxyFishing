@@ -10,8 +10,8 @@ import java.util.Optional;
 
 public class CommonUpdateCheckerTest {
 
-    private static final long SIMPLE_PROXY_CHAT_SPIGOTMC_ID = 115305;
-    private static final long SIMPLE_PROXY_CHAT_HELPER_SPIGOTMC_ID = 116966;
+    private static final long ADVANCED_PROXY_CHAT_SPIGOTMC_ID = 115305;
+    private static final long ADVANCED_PROXY_CHAT_HELPER_SPIGOTMC_ID = 116966;
 
     private CommonUpdateChecker proxyUpdateChecker;
     private CommonUpdateChecker helperUpdateChecker;
@@ -20,26 +20,26 @@ public class CommonUpdateCheckerTest {
     public void setUp() {
         this.proxyUpdateChecker = new CommonUpdateChecker(
                 "0.0.0",
-                SIMPLE_PROXY_CHAT_SPIGOTMC_ID
+                ADVANCED_PROXY_CHAT_SPIGOTMC_ID
         );
 
         this.helperUpdateChecker = new CommonUpdateChecker(
                 "0.0.0",
-                SIMPLE_PROXY_CHAT_HELPER_SPIGOTMC_ID
+                ADVANCED_PROXY_CHAT_HELPER_SPIGOTMC_ID
         );
     }
 
     @Test
-    @DisplayName("Can Get Spigot Version for SimpleProxyChat")
-    public void testCanGetSpigotVersionForSimpleProxyChat() {
+    @DisplayName("Can Get Spigot Version for AdvancedProxyChat")
+    public void testCanGetSpigotVersionForAdvancedProxyChat() {
         Optional<String> update = this.proxyUpdateChecker.getUpdate();
         Assertions.assertTrue(update.isPresent());
         Assertions.assertFalse(update.get().isBlank());
     }
 
     @Test
-    @DisplayName("Can Get Spigot Version for SimpleProxyChatHelper")
-    public void testCanGetSpigotVersionForSimpleProxyChatHelper() {
+    @DisplayName("Can Get Spigot Version for AdvancedProxyChatHelper")
+    public void testCanGetSpigotVersionForAdvancedProxyChatHelper() {
         Optional<String> update = this.helperUpdateChecker.getUpdate();
         Assertions.assertTrue(update.isPresent());
         Assertions.assertFalse(update.get().isBlank());
@@ -58,7 +58,7 @@ public class CommonUpdateCheckerTest {
     public void testShouldNotReturnRemoteString() {
         CommonUpdateChecker updateChecker = new CommonUpdateChecker(
                 "999.999.999",
-                SIMPLE_PROXY_CHAT_SPIGOTMC_ID
+                ADVANCED_PROXY_CHAT_SPIGOTMC_ID
         );
 
         Optional<String> version = updateChecker.getUpdate();

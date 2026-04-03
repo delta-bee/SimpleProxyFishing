@@ -6,7 +6,7 @@
 # ==========================================================
 
 # Prefix for the plugin. %plugin-prefix% usable anywhere.
-plugin-prefix: "&8[<bold><rainbow>SimpleProxyChat&r&8]"
+plugin-prefix: "&8[<bold><rainbow>AdvancedProxyChat&r&8]"
 
 # Minecraft Stuff
 minecraft:
@@ -25,12 +25,15 @@ minecraft:
     default: "&e%player% &7moved from &c%from% &7to &a%to%&7."
     no-from: "&e%player% &7moved &7to &a%to%&7."
   whisper:
-    send: "&8[&dyou&8] &f⇒ &8[&d%receiver%&8] &9» &e%message%"
-    receive: "&8[&d%sender%&8] &f⇒ &8[&dyou&8] &9» &e%message%"
-    error: "&c/spc-whisper (user) (message)"
+    send: "&8[&dyou&8] &f-> &8[&d%receiver%&8] &9 &e%message%"
+    receive: "&8[&d%sender%&8] &f-> &8[&dyou&8] &9 &e%message%"
+    error: "&c/apc-msg (user) (message)"
   discord:
     enabled: true
     message: "**%server%** %player% » %message%"
+    # Default format for multi-channel MC->Discord messages.
+    # Placeholders: %channel%, %server%, %original_server%, %player%, %message%, %epoch%, %time%, %prefix%, %suffix%
+    channel-message: "[%channel%] **%server%** %player% » %message%"
     embed:
       use: false
       title: "[%server%] %player%"
@@ -43,7 +46,7 @@ minecraft:
     must-be-player: "%plugin-prefix% &cYou must be a player to run this command."
     reload: "%plugin-prefix% &aThe plugin has been successfully reloaded!"
     chat-lock:
-      usage: "%plugin-prefix% &cCorrect usage is &a/spc-chat all lock/unlock &c or &a/spc-chat lock/unlock"
+      usage: "%plugin-prefix% &cCorrect usage is &a/apc-chat all lock/unlock &c or &a/apc-chat lock/unlock"
       single:
         locked: "%plugin-prefix% &6%server% &cwill no longer send proxy chat messages."
         unlocked: "%plugin-prefix% &6%server% &awill now send proxy chat messages."
@@ -56,8 +59,28 @@ minecraft:
       unbanned: "%plugin-prefix% &c%player% &7has been unbanned."
       login-message: "&cYou have been banned from the proxy."
     broadcast:
-      usage: "%plugin-prefix% &c/spc-broadcast (message)"
+      usage: "%plugin-prefix% &c/apc-bc (message)"
       message: "%plugin-prefix% &8[&a&lBROADCAST&r&8] &6%message%"
+    # Added in file-version 12: multi-channel Discord bridge commands.
+    channels:
+      header: "%plugin-prefix%&7--- &bChannels &7---"
+      entry: "  &b%channel% &8| &7Send: %send%  Receive: %receive%"
+      toggled-send-on:  "%plugin-prefix%&a%channel%: &7Send &aenabled."
+      toggled-send-off: "%plugin-prefix%&c%channel%: &7Send &cdisabled."
+      toggled-receive-on:  "%plugin-prefix%&a%channel%: &7Receive &aenabled."
+      toggled-receive-off: "%plugin-prefix%&c%channel%: &7Receive &cdisabled."
+      no-channels: "%plugin-prefix%&cNo channels are configured."
+      usage: "%plugin-prefix%&7Usage: &b/channels &7[channel] &b[send|receive]"
+    listen:
+      started: "%plugin-prefix%&7Listening to &b%channel% &7for the next &b%amount% &7message(s)."
+      expired: "%plugin-prefix%&7Your listen session for &b%channel% &7has ended."
+      usage: "%plugin-prefix%&7Usage: &b/listen &7<channel> <amount>"
+      no-such-channel: "%plugin-prefix%&cUnknown channel: &7%channel%"
+    history:
+      header: "%plugin-prefix%&7--- &bHistory: %channel% &7(last %amount%) ---"
+      empty: "%plugin-prefix%&7No history for &b%channel%&7 yet."
+      usage: "%plugin-prefix%&7Usage: &b/history &7<channel> <amount>"
+      no-such-channel: "%plugin-prefix%&cUnknown channel: &7%channel%"
 
 # Discord Stuff
 discord:
@@ -82,6 +105,9 @@ discord:
   chat:
     enabled: true
     minecraft-message: "&8[&bDiscord&8] %role% &f%user% &9» &7%message%"
+    # Default format when a message arrives from a named channel (multi-channel mode).
+    # Placeholders: %channel%, %role%, %user%, %nick%, %message%, %epoch%, %time%, %plugin-prefix%
+    channel-minecraft-message: "&8[&b%channel%&8] %role% &f%user% &9» &7%message%"
   topic:
     online: "There are %online% players online."
     offline: "The proxy is offline."
@@ -109,5 +135,6 @@ console:
 # The plugin-prefix is automatically appended to the beginning of this message.
 update-message: "&7There is an update! You are on &c%old%. New version is &a%new%&7: &6%link%"
 
+
 # DO NOT TOUCH THIS
-file-version: 10
+file-version: 12
