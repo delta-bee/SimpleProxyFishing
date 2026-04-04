@@ -94,17 +94,18 @@ send-previous-messages-on-switch:
 # These require a restart in order to take place.
 commands:
   reload-aliases:
-    - "apc-reload"
+    - "spc-reload"
   chat-toggle-aliases:
-    - "apc-chat"
+    - "spc-chat"
   ban-aliases:
-    - "apc-ban"
+    - "spc-ban"
   unban-aliases:
-    - "apc-unban"
+    - "spc-unban"
   whisper-aliases:
     - "msg"
     - "apc-msg"
   reply-aliases:
+    - "spc-reply"
     - "apc-r"
   broadcast-aliases:
     - "broadcast"

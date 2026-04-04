@@ -21,7 +21,7 @@ public class BungeeBanCommand extends Command implements TabExecutor {
     private final Config config;
 
     public BungeeBanCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("Spc-ban", Permission.COMMAND_BAN.getPermissionNode(), aliases);
+        super("apc-ban", Permission.COMMAND_BAN.getPermissionNode(), aliases);
         this.plugin = plugin;
         this.config = plugin.getConfig();
     }

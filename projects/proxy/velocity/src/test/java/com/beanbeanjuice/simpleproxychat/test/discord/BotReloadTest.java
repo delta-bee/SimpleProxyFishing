@@ -12,29 +12,23 @@ import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for Bot.reload() without a live JDA connection.
+ * Tests for Bot reload behaviour without a live JDA connection.
  *
- * Key invariant: when the token is unchanged and the bot is running, reload()
- * must route all JDA calls (presence, status) through the asyncRunner -- NOT
- * execute them inline on the calling thread. Calling JDA APIs inline on the
- * Velocity command thread was the root cause of the Discord->MC bridge dying
- * after /apc-reload.
+ * On reload, the bot must only refresh its activity/status/channel-registry.
+ * It must NEVER call stop() or send a "Proxy disabled" embed.
  */
 public class BotReloadTest {
 
     private Config config;
-    private AtomicInteger asyncCallCount;
     private List<String> warnMessages;
 
     @BeforeEach
     public void setUp() {
         config = Mockito.mock(Config.class);
-        asyncCallCount = new AtomicInteger(0);
         warnMessages = new ArrayList<>();
 
         stubDiscord(false, "TOKEN_HERE");
@@ -52,80 +46,52 @@ public class BotReloadTest {
     }
 
     private Bot makeBot() {
-        return new Bot(
-                config,
-                warnMessages::add,
-                task -> asyncCallCount.incrementAndGet(),
-                () -> 1,
-                () -> 20
-        );
+        return new Bot(config, warnMessages::add, () -> 1, () -> 20);
     }
 
     @Test
-    @DisplayName("reload() is a no-op when discord is disabled and bot is not running")
-    public void testReloadNoopWhenDisabled() {
-        stubDiscord(false, "TOKEN_HERE");
-        Bot bot = makeBot();
-
-        bot.reload();
-
-        assertEquals(0, asyncCallCount.get(),
-                "No async tasks should be scheduled when discord is disabled and bot is not running");
-    }
-
-    @Test
-    @DisplayName("Bot constructor registers exactly one reload listener with config")
-    public void testReloadListenerRegisteredExactlyOnce() {
+    @DisplayName("Bot constructor registers reload listeners only when discord is enabled")
+    public void testReloadListenerRegisteredWhenEnabled() {
+        // Discord disabled – constructor returns early without registering listeners.
         List<Runnable> listeners = new ArrayList<>();
         Mockito.doAnswer(inv -> { listeners.add(inv.getArgument(0)); return null; })
                 .when(config).addReloadListener(Mockito.any());
 
+        stubDiscord(false, "TOKEN_HERE");
         makeBot();
-
-        assertEquals(1, listeners.size(),
-                "Bot constructor must register exactly ONE reload listener. " +
-                "More than one causes double-reload on every /apc-reload.");
+        assertEquals(0, listeners.size(), "No listeners should be registered when discord is disabled");
     }
 
     @Test
-    @DisplayName("reload() with enabled discord and non-placeholder token uses asyncRunner")
-    public void testEnabledDiscordUsesAsyncRunner() {
+    @DisplayName("Bot constructor registers exactly two reload listeners when discord is enabled")
+    public void testReloadListenersRegisteredWhenEnabled() {
+        List<Runnable> listeners = new ArrayList<>();
+        Mockito.doAnswer(inv -> { listeners.add(inv.getArgument(0)); return null; })
+                .when(config).addReloadListener(Mockito.any());
+
         stubDiscord(true, "REAL.BOT.TOKEN");
-        Bot bot = makeBot();
-
-        bot.reload(); // bot==null, tokenChanged -> schedules async start
-
-        assertTrue(asyncCallCount.get() > 0,
-                "reload() must schedule work via asyncRunner when discord is enabled. " +
-                "Inline JDA calls on the command thread break the event loop.");
-    }
-
-    @Test
-    @DisplayName("The reload listener registered by Bot is safe to call and does not throw")
-    public void testRegisteredListenerDoesNotThrow() {
-        List<Runnable> listeners = new ArrayList<>();
-        Mockito.doAnswer(inv -> { listeners.add(inv.getArgument(0)); return null; })
-                .when(config).addReloadListener(Mockito.any());
-
         makeBot();
-
-        assertFalse(listeners.isEmpty());
-        assertDoesNotThrow(() -> listeners.get(0).run(),
-                "The reload listener Bot registers with Config must not throw. " +
-                "An exception here aborts Config.reload() and leaves plugin state inconsistent.");
+        assertEquals(2, listeners.size(),
+                "Bot must register exactly two listeners (updateActivity + updateStatus) when discord is enabled");
     }
 
     @Test
-    @DisplayName("Calling reload() multiple times does not throw")
-    public void testMultipleReloadsAreSafe() {
+    @DisplayName("update() does not throw when bot is not connected")
+    public void testUpdateDoesNotThrowWhenNotConnected() {
         stubDiscord(false, "TOKEN_HERE");
         Bot bot = makeBot();
+        assertDoesNotThrow(bot::update, "update() must be safe to call when JDA is not running");
+    }
 
+    @Test
+    @DisplayName("Calling update() multiple times does not throw")
+    public void testMultipleUpdatesAreSafe() {
+        stubDiscord(false, "TOKEN_HERE");
+        Bot bot = makeBot();
         assertDoesNotThrow(() -> {
-            bot.reload();
-            bot.reload();
-            bot.reload();
-        }, "Multiple successive reload() calls must not throw");
+            bot.update();
+            bot.update();
+            bot.update();
+        }, "Multiple successive update() calls must not throw");
     }
 }
-

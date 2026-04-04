@@ -12,7 +12,6 @@ import com.beanbeanjuice.simpleproxychat.commands.ban.VelocityBanCommand;
 import com.beanbeanjuice.simpleproxychat.commands.ban.VelocityUnbanCommand;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
 import com.beanbeanjuice.simpleproxychat.common.CommonUpdateChecker;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.socket.VelocityPluginMessagingListener;
 import com.beanbeanjuice.simpleproxychat.shared.helper.BanHelper;
 import com.beanbeanjuice.simpleproxychat.shared.channel.PlayerChannelPrefsManager;
@@ -96,12 +95,9 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
         // Initialize discord bot.
         this.getLogger().info("Attempting to initialize Discord bot... (IF ENABLED)");
         discordBot = new Bot(this.config, this.getLogger()::warn,
-                (task) -> this.proxyServer.getScheduler().buildTask(this, task).schedule(),
                 this::getOnlinePlayers, this::getMaxPlayers);
 
-        // Wire the bot's reload handler so that /apc-reload re-syncs the bot.
-        this.config.addReloadListener(discordBot::reload);
-
+        // Note: Bot registers its own config reload listener in its constructor.
         // Bot ready.
         this.proxyServer.getScheduler().buildTask(this, () -> {
             try { discordBot.start(); }
@@ -230,12 +226,12 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
     private void registerCommands() {
         CommandManager commandManager = proxyServer.getCommandManager();
 
-        CommandMeta reloadCommand = commandManager.metaBuilder("spc-reload")
+        CommandMeta reloadCommand = commandManager.metaBuilder("apc-reload")
                 .aliases(config.get(ConfigKey.RELOAD_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();
 
-        CommandMeta chatToggleCommand = commandManager.metaBuilder("spc-chat")
+        CommandMeta chatToggleCommand = commandManager.metaBuilder("apc-chat")
                 .aliases(config.get(ConfigKey.CHAT_TOGGLE_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();
@@ -245,17 +241,17 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
                 .plugin(this)
                 .build();
 
-        CommandMeta replyCommand = commandManager.metaBuilder("spc-reply")
+        CommandMeta replyCommand = commandManager.metaBuilder("apc-reply")
                 .aliases(config.get(ConfigKey.REPLY_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();
 
-        CommandMeta banCommand = commandManager.metaBuilder("spc-ban")
+        CommandMeta banCommand = commandManager.metaBuilder("apc-ban")
                 .aliases(config.get(ConfigKey.BAN_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();
 
-        CommandMeta unbanCommand = commandManager.metaBuilder("spc-unban")
+        CommandMeta unbanCommand = commandManager.metaBuilder("apc-unban")
                 .aliases(config.get(ConfigKey.UNBAN_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();

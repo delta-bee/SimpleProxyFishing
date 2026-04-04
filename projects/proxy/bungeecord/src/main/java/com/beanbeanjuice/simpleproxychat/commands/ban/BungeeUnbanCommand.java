@@ -21,7 +21,7 @@ public class BungeeUnbanCommand extends Command implements TabExecutor {
     private final Config config;
 
     public BungeeUnbanCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("Spc-unban", Permission.COMMAND_UNBAN.getPermissionNode(), aliases);
+        super("apc-unban", Permission.COMMAND_UNBAN.getPermissionNode(), aliases);
         this.plugin = plugin;
         this.config = plugin.getConfig();
     }
