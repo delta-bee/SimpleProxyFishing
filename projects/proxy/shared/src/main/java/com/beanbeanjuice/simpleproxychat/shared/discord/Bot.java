@@ -28,7 +28,6 @@ public class Bot {
 
     private final Config config;
     private final Consumer<String> errorLogger;
-    private final Consumer<Runnable> asyncRunner;
     private JDA bot;
 
     private final Supplier<Integer> getOnlinePlayers;
@@ -41,14 +40,10 @@ public class Bot {
 
     private boolean channelTopicErrorSent = false;
 
-    /** Token that was used to start JDA (used to detect token changes on reload). */
-    private String activeToken = null;
-
-    public Bot(final Config config, final Consumer<String> errorLogger, final Consumer<Runnable> asyncRunner,
+    public Bot(final Config config, final Consumer<String> errorLogger,
                final Supplier<Integer> getOnlinePlayers, final Supplier<Integer> getMaxPlayers) {
         this.config = config;
         this.errorLogger = errorLogger;
-        this.asyncRunner = asyncRunner;
 
         this.getOnlinePlayers = getOnlinePlayers;
         this.getMaxPlayers = getMaxPlayers;
@@ -57,10 +52,11 @@ public class Bot {
 
         if (!config.get(ConfigKey.USE_DISCORD).asBoolean()) {
             bot = null;
+            return;
         }
 
-        // A single reload listener handles all Discord state synchronisation.
-        config.addReloadListener(this::reload);
+        config.addReloadListener(this::updateActivity);
+        config.addReloadListener(this::updateStatus);
     }
 
     // =========================================================================
@@ -308,63 +304,11 @@ public class Bot {
         this.runnableQueue.add(runnable);
     }
 
-    /**
-     * Called by the config's reload mechanism whenever the administrator runs the reload command.
-     * <p>
-     * Behaviour:
-     * <ul>
-     *   <li>If Discord was disabled and is still disabled – no-op.</li>
-     *   <li>If the token or enabled state has changed – shuts down the old JDA instance (if
-     *       any) and starts a fresh one asynchronously using the new token / enabled flag.</li>
-     *   <li>Otherwise – refreshes the local {@link ChannelRegistry} snapshot, bot presence, and
-     *       online status without touching the JDA connection.</li>
-     * </ul>
-     */
-    public void reload() {
-        boolean useDiscord = config.get(ConfigKey.USE_DISCORD).asBoolean();
-        String newToken = config.get(ConfigKey.BOT_TOKEN).asString();
-
-        boolean tokenChanged = !newToken.equals(activeToken != null ? activeToken : "");
-        boolean wasRunning   = bot != null;
-
-        if (!useDiscord && !wasRunning) {
-            // Discord is still disabled – nothing to do.
-            return;
-        }
-
-        if (!useDiscord && wasRunning) {
-            // Discord has been disabled in config – shut down.
-            asyncRunner.accept(() -> {
-                stop();
-                activeToken = null;
-            });
-            return;
-        }
-
-        if (!wasRunning || tokenChanged) {
-            // Either the bot was never running (discord just got enabled) or the token changed –
-            // stop the old instance (if any) and start fresh.
-            asyncRunner.accept(() -> {
-                if (wasRunning) {
-                    stop(); // sends offline embed, shuts down JDA
-                }
-                try {
-                    start();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    errorLogger.accept("Discord bot restart was interrupted: " + e.getMessage());
-                } catch (Exception e) {
-                    errorLogger.accept("Failed to restart Discord bot after config reload: " + e.getMessage());
-                }
-            });
-            return;
-        }
-
+    public void update() {
         // Token unchanged and bot is running – just sync state.
         this.channelRegistry = config.getChannelRegistry();
         updateActivity();
         updateStatus();
-        validateDiscordConfig();
     }
 
     public void start() throws InterruptedException {
@@ -379,9 +323,6 @@ public class Bot {
                 .setChunkingFilter(ChunkingFilter.ALL)
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
                 .build().awaitReady();
-
-        // Record the token used so reload() can detect changes.
-        this.activeToken = token;
 
         // Sync the channel registry from config now that JDA is ready.
         this.channelRegistry = config.getChannelRegistry();
@@ -512,4 +453,3 @@ public class Bot {
     }
 
 }
-

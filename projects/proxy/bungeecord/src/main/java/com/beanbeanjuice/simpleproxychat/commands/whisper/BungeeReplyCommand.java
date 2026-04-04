@@ -21,7 +21,7 @@ public class BungeeReplyCommand extends Command {
     private final Config config;
 
     public BungeeReplyCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("Spc-reply", Permission.COMMAND_WHISPER.getPermissionNode(), aliases);
+        super("apc-reply", Permission.COMMAND_WHISPER.getPermissionNode(), aliases);
         this.plugin = plugin;;
         this.config = plugin.getConfig();
     }

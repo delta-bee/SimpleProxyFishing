@@ -2,7 +2,6 @@ package com.beanbeanjuice.simpleproxychat.commands;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatBungee;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.shared.helper.Helper;
 import com.beanbeanjuice.simpleproxychat.shared.config.Config;
 import com.beanbeanjuice.simpleproxychat.shared.config.ConfigKey;
@@ -24,7 +23,7 @@ public class BungeeChatToggleCommand extends Command implements TabExecutor {
     private final Config config;
 
     public BungeeChatToggleCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("Spc-chat", null, aliases);
+        super("apc-chat", null, aliases);
         this.plugin = plugin;
         this.config = plugin.getConfig();
     }

@@ -2,7 +2,6 @@ package com.beanbeanjuice.simpleproxychat.commands;
 
 import com.beanbeanjuice.simpleproxychat.SimpleProxyChatBungee;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
-import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.shared.helper.Helper;
 import com.beanbeanjuice.simpleproxychat.shared.config.Config;
 import com.beanbeanjuice.simpleproxychat.shared.config.ConfigKey;
@@ -17,7 +16,7 @@ public class BungeeReloadCommand extends Command {
     private final Config config;
 
     public BungeeReloadCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("Spc-reload", null, aliases);
+        super("apc-reload", null, aliases);
         this.plugin = plugin;
         this.config = plugin.getConfig();
     }
@@ -31,6 +30,7 @@ public class BungeeReloadCommand extends Command {
         }
 
         config.reload();
+        plugin.getDiscordBot().update();
 
         String message = config.get(ConfigKey.MINECRAFT_COMMAND_RELOAD).asString();
         message = CommonHelper.replaceKey(message, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());

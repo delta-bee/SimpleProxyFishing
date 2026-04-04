@@ -11,9 +11,11 @@ import com.velocitypowered.api.command.SimpleCommand;
 
 public class VelocityReloadCommand implements SimpleCommand {
 
+    private final SimpleProxyChatVelocity plugin;
     private final Config config;
 
     public VelocityReloadCommand(final SimpleProxyChatVelocity plugin) {
+        this.plugin = plugin;
         this.config = plugin.getConfig();
     }
 
@@ -21,9 +23,8 @@ public class VelocityReloadCommand implements SimpleCommand {
     public void execute(Invocation invocation) {
         CommandSource source = invocation.source();
 
-        // config.reload() triggers all registered reload listeners, including bot.reload()
-        // which fully re-syncs the Discord bot (presence, status, channel registry, token changes).
         config.reload();
+        plugin.getDiscordBot().update();
 
         String message = config.get(ConfigKey.MINECRAFT_COMMAND_RELOAD).asString();
         message = CommonHelper.replaceKey(message, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());

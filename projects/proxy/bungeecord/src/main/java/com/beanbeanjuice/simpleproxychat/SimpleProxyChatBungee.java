@@ -70,7 +70,6 @@ public final class SimpleProxyChatBungee extends Plugin implements ISimpleProxyC
 
         this.getLogger().info("Attempting to initialize Discord bot... (IF ENABLED)");
         discordBot = new Bot(this.config, this.getLogger()::warning,
-                (task) -> this.getProxy().getScheduler().runAsync(this, task),
                 this::getOnlinePlayers, this::getMaxPlayers);
 
         this.getProxy().getScheduler().runAsync(this, () -> {
