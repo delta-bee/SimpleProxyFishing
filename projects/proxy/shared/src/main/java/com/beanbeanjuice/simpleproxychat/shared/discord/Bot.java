@@ -58,51 +58,89 @@ public class Bot {
         config.addReloadListener(this::updateStatus);
     }
 
-    public void sendMessage(final String messageToSend) {
-        if (bot == null) return;
+    // =========================================================================
+    // System-messages channel
+    // Used exclusively for join/leave/switch events, proxy-status embeds,
+    // server-status updates, and channel topic updates.
+    // Chat bridging must be done via the 'channels:' list in config.yml.
+    // =========================================================================
 
-        this.getBotTextChannel().ifPresentOrElse(
-                (mainTextChannel) -> {
-                    String message = Helper.sanitize(messageToSend);
-                    message = Arrays.stream(message.split(" ")).map((originalString) -> {
-                        if (!originalString.startsWith("@")) return originalString;
-                        String name = originalString.replace("@", "");
-
-                        List<Member> potentialMembers = mainTextChannel.getMembers();
-                        Optional<Member> potentialMember = potentialMembers
-                                .stream()
-                                .filter((member) -> ((member.getNickname() != null && member.getNickname().equalsIgnoreCase(name)) || member.getEffectiveName().equalsIgnoreCase(name)))
-                                .findFirst();
-
-                        return potentialMember.map(IMentionable::getAsMention).orElse(originalString);
-                    }).collect(Collectors.joining(" "));
-
-                    mainTextChannel.sendMessage(message).queue();
-                },
-                () -> errorLogger.accept("There was an error sending a message to Discord. Does the channel exist? Does the bot have access to the channel?")
-        );
-
-
+    /**
+     * Returns the configured system-messages Discord channel, if it exists and JDA is ready.
+     */
+    public Optional<TextChannel> getSystemMessagesChannel() {
+        if (bot == null) return Optional.empty();
+        String id = config.get(ConfigKey.SYSTEM_MESSAGES_CHANNEL_ID).asString();
+        if (id.isEmpty() || id.equalsIgnoreCase("SYSTEM_CHANNEL_ID")) return Optional.empty();
+        return Optional.ofNullable(bot.getTextChannelById(id));
     }
 
     /**
-     * Embed needs to be sanitized before running this function.
-     * @param embed The {@link MessageEmbed} to send in the channel.
+     * Send a plain-text system message (join/leave/switch) to the system-messages channel.
      */
-    public void sendMessageEmbed(final MessageEmbed embed) {
+    public void sendSystemMessage(final String messageToSend) {
         if (bot == null) return;
 
-        this.getBotTextChannel().ifPresentOrElse(
-                (channel) -> channel.sendMessageEmbeds(sanitizeEmbed(embed)).queue(),
-                () -> errorLogger.accept("There was an error sending a message to Discord. Does the channel exist? Does the bot have access to the channel?")
+        getSystemMessagesChannel().ifPresentOrElse(
+                (channel) -> {
+                    String message = Helper.sanitize(messageToSend);
+                    message = Arrays.stream(message.split(" ")).map((word) -> {
+                        if (!word.startsWith("@")) return word;
+                        String name = word.replace("@", "");
+                        Optional<Member> potentialMember = channel.getMembers().stream()
+                                .filter((m) -> (m.getNickname() != null && m.getNickname().equalsIgnoreCase(name))
+                                        || m.getEffectiveName().equalsIgnoreCase(name))
+                                .findFirst();
+                        return potentialMember.map(IMentionable::getAsMention).orElse(word);
+                    }).collect(Collectors.joining(" "));
+                    channel.sendMessage(message).queue();
+                },
+                () -> errorLogger.accept("Could not send a system message to Discord. " +
+                        "Is 'system-messages-channel-id' set correctly in config.yml?")
         );
     }
 
-    public Optional<TextChannel> getBotTextChannel() {
-        return Optional.ofNullable(bot.getTextChannelById(config.get(ConfigKey.CHANNEL_ID).asString()));
+    /**
+     * Send an embed to the system-messages channel (proxy status, server status).
+     * The embed is sanitized before sending.
+     */
+    public void sendSystemMessageEmbed(final MessageEmbed embed) {
+        if (bot == null) return;
+
+        getSystemMessagesChannel().ifPresentOrElse(
+                (channel) -> channel.sendMessageEmbeds(sanitizeEmbed(embed)).queue(),
+                () -> errorLogger.accept("Could not send a system embed to Discord. " +
+                        "Is 'system-messages-channel-id' set correctly in config.yml?")
+        );
     }
 
-    // ---- Per-channel multi-channel helpers ----
+    /**
+     * Update the topic of the system-messages channel.
+     */
+    public void updateSystemChannelTopic(final String topic) {
+        if (bot == null) return;
+
+        getSystemMessagesChannel().ifPresentOrElse(
+                (textChannel) -> {
+                    try {
+                        textChannel.getManager().setTopic(topic).queue();
+                    } catch (InsufficientPermissionException e) {
+                        if (!channelTopicErrorSent) {
+                            channelTopicErrorSent = true;
+                            errorLogger.accept("No permission to edit the system channel topic. " +
+                                    "If you don't want channel topics updated, ignore this. " +
+                                    "Otherwise, grant the bot MANAGE_CHANNELS. " +
+                                    "This message will only appear once per restart.");
+                        }
+                    }
+                },
+                () -> {} // system channel ID may not be set; silently skip
+        );
+    }
+
+    // =========================================================================
+    // Per-channel multi-channel helpers
+    // =========================================================================
 
     /** Look up a Discord {@link TextChannel} by its raw channel ID. */
     public Optional<TextChannel> getTextChannel(String channelId) {
@@ -194,6 +232,10 @@ public class Bot {
         return channelRegistry;
     }
 
+    // =========================================================================
+    // Internal helpers
+    // =========================================================================
+
     private MessageEmbed sanitizeEmbed(final MessageEmbed oldEmbed) {
         EmbedBuilder embedBuilder = new EmbedBuilder(oldEmbed);
 
@@ -217,8 +259,8 @@ public class Bot {
             );
 
         if (!oldEmbed.getFields().isEmpty()) {
-            List<MessageEmbed.Field> fields = new ArrayList<>(oldEmbed.getFields());  // Make copy.
-            embedBuilder.clearFields();  // Clear fields.
+            List<MessageEmbed.Field> fields = new ArrayList<>(oldEmbed.getFields());
+            embedBuilder.clearFields();
 
             for (MessageEmbed.Field field : fields) {
                 embedBuilder.addField(
@@ -232,38 +274,22 @@ public class Bot {
         return embedBuilder.build();
     }
 
-    public void updateChannelTopic(final String topic) {
-        if (bot == null) return;
-
-        this.getBotTextChannel().ifPresentOrElse(
-                (textChannel) -> {
-                    try {
-                        textChannel.getManager().setTopic(topic).queue();
-                    } catch (InsufficientPermissionException e) {
-                        if (!channelTopicErrorSent) {
-                            channelTopicErrorSent = true;
-                            errorLogger.accept("""
-                                    No permission to edit channel topic. If you don't want the channel topics to be updated, \
-                                    simply ignore this message. Otherwise, please give the Discord bot the MANAGE_CHANNELS \
-                                    permission. This message will only be sent once per server restart. \
-                                    """);
-                        }
-                    }
-                },
-                () -> errorLogger.accept("There was an error updating the Discord channel topic. Does the channel exist? Does the bot have access to the channel?")
-        );
-    }
+    // =========================================================================
+    // Lifecycle
+    // =========================================================================
 
     public void channelUpdaterFunction() {
         if (bot == null) return;
         String topicMessage = config.get(ConfigKey.DISCORD_TOPIC_ONLINE).asString()
                 .replace("%online%", String.valueOf(getOnlinePlayers.get()));
 
+        // Update topic on every configured chat channel.
         if (channelRegistry != null && !channelRegistry.isEmpty()) {
             channelRegistry.all().forEach((ch) -> updateChannelTopic(ch, topicMessage));
-        } else {
-            this.updateChannelTopic(topicMessage);
         }
+
+        // Also update the system-messages channel topic.
+        updateSystemChannelTopic(topicMessage);
     }
 
     public Optional<JDA> getJDA() {
@@ -337,14 +363,14 @@ public class Bot {
         if (!config.get(ConfigKey.DISCORD_PROXY_STATUS_ENABLED).asBoolean()) return;
 
         if (isStart) {
-            this.sendMessageEmbed(
+            sendSystemMessageEmbed(
                     new EmbedBuilder()
                             .setTitle(config.get(ConfigKey.DISCORD_PROXY_STATUS_MODULE_ENABLED).asString())
                             .setColor(Color.GREEN)
                             .build()
             );
         } else {
-            this.sendMessageEmbed(
+            sendSystemMessageEmbed(
                     new EmbedBuilder()
                             .setTitle(config.get(ConfigKey.DISCORD_PROXY_STATUS_MODULE_DISABLED).asString())
                             .setColor(Color.RED)
@@ -360,19 +386,19 @@ public class Bot {
         String offlineTopic = config.get(ConfigKey.DISCORD_TOPIC_OFFLINE).asString();
         if (channelRegistry != null && !channelRegistry.isEmpty()) {
             channelRegistry.all().forEach((ch) -> updateChannelTopic(ch, offlineTopic));
-        } else {
-            this.updateChannelTopic(offlineTopic);
         }
+        updateSystemChannelTopic(offlineTopic);
 
         this.getJDA().ifPresent((jda) -> {
             try {
                 jda.shutdown();
                 if (!jda.awaitShutdown(Duration.ofSeconds(10))) {
-                    jda.shutdownNow(); // Cancel all remaining requests
-                    jda.awaitShutdown(); // Wait until shutdown is complete (indefinitely)
+                    jda.shutdownNow();
+                    jda.awaitShutdown();
                 }
             } catch (InterruptedException ignored) { }
         });
     }
 
 }
+

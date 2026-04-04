@@ -9,19 +9,28 @@ import com.beanbeanjuice.simpleproxychat.shared.config.Permission;
 import com.beanbeanjuice.simpleproxychat.shared.discord.ChannelDefinition;
 import com.beanbeanjuice.simpleproxychat.shared.discord.ChannelRegistry;
 import com.beanbeanjuice.simpleproxychat.shared.helper.Helper;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 /**
  * /channels [channel] [send|receive]
  *
- * With no arguments: lists all configured channels and the player's current
- * send/receive preference for each.
- * With arguments: toggles the named preference for the named channel.
+ * With no arguments: displays a clickable toggle menu in chat. Each channel row
+ * shows two clickable buttons — [Send: ON/OFF] and [Receive: ON/OFF] — that run
+ * /channels &lt;channel&gt; send (or receive) when clicked.
+ *
+ * With arguments: toggles the named preference for the named channel directly.
  */
 public class BungeeChannelsCommand extends Command {
 
@@ -53,21 +62,19 @@ public class BungeeChannelsCommand extends Command {
             return;
         }
 
+        // /channels  – show clickable toggle menu
         if (args.length == 0) {
             String header = config.get(ConfigKey.MINECRAFT_COMMAND_CHANNELS_HEADER).asString();
             header = CommonHelper.replaceKey(header, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
             player.sendMessage(Helper.convertToBungee(header));
 
+            // Resolve the primary command name (first alias, or fallback "apc-channels")
+            List<String> channelAliases = config.get(ConfigKey.CHANNELS_ALIASES).asList();
+            String baseCmd = channelAliases.isEmpty() ? "apc-channels" : channelAliases.get(0);
+
             for (ChannelDefinition ch : registry.all()) {
                 PlayerChannelPrefsManager.ChannelPrefs prefs = prefsManager.getPrefs(player.getUniqueId(), ch);
-                String sendIcon    = prefs.isSend()    ? "&a✅" : "&c❌";
-                String receiveIcon = prefs.isReceive() ? "&a✅" : "&c❌";
-                String entry = config.get(ConfigKey.MINECRAFT_COMMAND_CHANNELS_ENTRY).asString();
-                entry = CommonHelper.replaceKey(entry, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
-                entry = CommonHelper.replaceKey(entry, "channel", ch.getName());
-                entry = CommonHelper.replaceKey(entry, "send", sendIcon);
-                entry = CommonHelper.replaceKey(entry, "receive", receiveIcon);
-                player.sendMessage(Helper.convertToBungee(entry));
+                player.sendMessage(buildChannelRow(ch, prefs, baseCmd));
             }
             return;
         }
@@ -105,6 +112,45 @@ public class BungeeChannelsCommand extends Command {
             }
             default -> sendUsage(player);
         }
+    }
+
+    /**
+     * Builds a single channel row with two clickable toggle buttons:
+     *   &lt;channel name&gt;  [Send: ON]  [Receive: OFF]
+     */
+    private net.md_5.bungee.api.chat.BaseComponent[] buildChannelRow(ChannelDefinition ch,
+                                                                      PlayerChannelPrefsManager.ChannelPrefs prefs,
+                                                                      String baseCmd) {
+        boolean sendOn = prefs.isSend();
+        boolean rcvOn  = prefs.isReceive();
+
+        ComponentBuilder builder = new ComponentBuilder("  " + ch.getName() + " ").color(ChatColor.AQUA);
+
+        // Send button
+        TextComponent sendBtn = new TextComponent("[Send: " + (sendOn ? "ON" : "OFF") + "]");
+        sendBtn.setColor(sendOn ? ChatColor.GREEN : ChatColor.RED);
+        sendBtn.setBold(true);
+        sendBtn.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                "/" + baseCmd + " " + ch.getName() + " send"));
+        sendBtn.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                new Text(sendOn ? "Click to disable sending to " + ch.getName()
+                               : "Click to enable sending to " + ch.getName())));
+
+        builder.append(sendBtn);
+        builder.append("  ").reset();
+
+        // Receive button
+        TextComponent rcvBtn = new TextComponent("[Receive: " + (rcvOn ? "ON" : "OFF") + "]");
+        rcvBtn.setColor(rcvOn ? ChatColor.GREEN : ChatColor.RED);
+        rcvBtn.setBold(true);
+        rcvBtn.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                "/" + baseCmd + " " + ch.getName() + " receive"));
+        rcvBtn.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                new Text(rcvOn ? "Click to stop receiving from " + ch.getName()
+                               : "Click to start receiving from " + ch.getName())));
+
+        builder.append(rcvBtn);
+        return builder.create();
     }
 
     private void sendUsage(ProxiedPlayer player) {

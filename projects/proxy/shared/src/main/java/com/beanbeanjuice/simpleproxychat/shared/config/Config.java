@@ -280,6 +280,9 @@ public class Config {
                         .addRelocation("7", "discord.proxy-status.offline", "discord.proxy-status.messages.offline", '.')
                         .addRelocation("7", "discord.proxy-status.use-timestamp", "discord.proxy-status.messages.use-timestamp", '.')
 
+                        // file-version 19: CHANNEL-ID is now system-messages-channel-id
+                        .addRelocation("18", "CHANNEL-ID", "system-messages-channel-id", '.')
+
                         .build()
         );
     }

@@ -86,7 +86,7 @@ public class ServerStatusManager {
         ServerStatus currentStatus = this.getStatus(serverName);
         currentStatus.updateStatus(newStatus).ifPresent((isOnline) -> {
             if (config.get(ConfigKey.DISCORD_PROXY_STATUS_ENABLED).asBoolean())
-                discordBot.sendMessageEmbed(this.getStatusEmbed(serverName, isOnline));
+                discordBot.sendSystemMessageEmbed(this.getStatusEmbed(serverName, isOnline));
 
             if (config.get(ConfigKey.CONSOLE_SERVER_STATUS).asBoolean())
                 logger.accept(Helper.sanitize(this.getStatusString(serverName, isOnline)));

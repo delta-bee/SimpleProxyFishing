@@ -53,14 +53,14 @@ public class ChatHandler {
         this.lastMessagesHelper = new LastMessagesHelper(plugin.getSPCConfig());
         this.channelPrefsManager = plugin.getChannelPrefsManager();
 
-        // Register the Discord listener. DiscordChatHandler.onMessageReceived dispatches to the
-        // appropriate sendFromDiscord overload based on whether a ChannelRegistry is configured.
+        // Register the Discord listener. Routes messages from configured channels
+        // to sendFromDiscord(ChannelDefinition, MessageReceivedEvent).
         plugin.getDiscordBot().addRunnableToQueue(() ->
             plugin.getDiscordBot().getJDA().ifPresent((jda) ->
                 jda.addEventListener(new DiscordChatHandler(
                     config,
                     jda.getSelfUser().getId(),
-                    (BiConsumer<ChannelDefinition, MessageReceivedEvent>) this::sendFromDiscord
+                    this::sendFromDiscord
                 ))
             )
         );
@@ -95,9 +95,9 @@ public class ChatHandler {
                 if (config.get(ConfigKey.MINECRAFT_DISCORD_EMBED_USE_TIMESTAMP).asBoolean())
                     embedBuilder.setTimestamp(EpochHelper.getEpochInstant());
 
-                discordBot.sendMessageEmbed(embedBuilder.build());
+                discordBot.sendSystemMessageEmbed(embedBuilder.build());
             } else {
-                discordBot.sendMessage(discordMessage);
+                discordBot.sendSystemMessage(discordMessage);
             }
         }
 
@@ -269,13 +269,13 @@ public class ChatHandler {
         // Log to Discord
         DISCORD_SENT: if (config.get(ConfigKey.DISCORD_LEAVE_ENABLED).asBoolean()) {
             if (!config.get(ConfigKey.DISCORD_LEAVE_USE_EMBED).asBoolean()) {
-                discordBot.sendMessage(discordMessage);
+                discordBot.sendSystemMessage(discordMessage);
                 break DISCORD_SENT;
             }
 
             EmbedBuilder embedBuilder = simpleAuthorEmbedBuilder(playerUUID, discordMessage).setColor(Color.RED);
             if (config.get(ConfigKey.DISCORD_LEAVE_USE_TIMESTAMP).asBoolean()) embedBuilder.setTimestamp(EpochHelper.getEpochInstant());
-            discordBot.sendMessageEmbed(embedBuilder.build());
+            discordBot.sendSystemMessageEmbed(embedBuilder.build());
         }
 
         // Log to Minecraft
@@ -310,13 +310,13 @@ public class ChatHandler {
         // Log to Discord
         DISCORD_SENT: if (config.get(ConfigKey.DISCORD_JOIN_ENABLED).asBoolean()) {
             if (!config.get(ConfigKey.DISCORD_JOIN_USE_EMBED).asBoolean()) {
-                discordBot.sendMessage(discordMessage);
+                discordBot.sendSystemMessage(discordMessage);
                 break DISCORD_SENT;
             }
 
             EmbedBuilder embedBuilder = simpleAuthorEmbedBuilder(playerUUID, discordMessage).setColor(Color.GREEN);
             if (config.get(ConfigKey.DISCORD_JOIN_USE_TIMESTAMP).asBoolean()) embedBuilder.setTimestamp(EpochHelper.getEpochInstant());
-            discordBot.sendMessageEmbed(embedBuilder.build());
+            discordBot.sendSystemMessageEmbed(embedBuilder.build());
         }
 
         // Log to Minecraft
@@ -359,13 +359,13 @@ public class ChatHandler {
         // Log to Discord
         DISCORD_SENT: if (config.get(ConfigKey.DISCORD_SWITCH_ENABLED).asBoolean()) {
             if (!config.get(ConfigKey.DISCORD_SWITCH_USE_EMBED).asBoolean()) {
-                discordBot.sendMessage(discordMessage);
+                discordBot.sendSystemMessage(discordMessage);
                 break DISCORD_SENT;
             }
 
             EmbedBuilder embedBuilder = simpleAuthorEmbedBuilder(playerUUID, discordMessage).setColor(Color.YELLOW);
             if (config.get(ConfigKey.DISCORD_SWITCH_USE_TIMESTAMP).asBoolean()) embedBuilder.setTimestamp(EpochHelper.getEpochInstant());
-            discordBot.sendMessageEmbed(embedBuilder.build());
+            discordBot.sendSystemMessageEmbed(embedBuilder.build());
         }
 
         // Log to Minecraft
@@ -419,7 +419,7 @@ public class ChatHandler {
 
         String discordMessage = event.getMessage().getContentStripped();
         String hex = "#" + Integer.toHexString(roleColor.getRGB()).substring(2);
-        String channelName = (channelDef != null) ? channelDef.getName() : "";
+        String channelName = channelDef.getName();
 
         HashMap<String, String> replacements = new HashMap<>(Map.of(
                 "role", String.format("<%s>%s</%s>", hex, roleName, hex),
@@ -439,11 +439,10 @@ public class ChatHandler {
         if (config.get(ConfigKey.CONSOLE_DISCORD_CHAT).asBoolean()) plugin.log(formatted);
 
         // Record history so /history can replay it.
-        if (channelDef != null) channelPrefsManager.recordHistory(channelDef, formatted);
+        channelPrefsManager.recordHistory(channelDef, formatted);
 
         // Deliver to each player individually, respecting their channel prefs.
         plugin.sendPerPlayer(formatted, (player) -> {
-            if (channelDef == null) return true; // legacy single-channel mode: always deliver
             if (!channelPrefsManager.shouldReceive(player, channelDef)) return false;
 
             // Decrement listen-once and notify if expired.
@@ -461,45 +460,6 @@ public class ChatHandler {
         });
     }
 
-    public void sendFromDiscord(MessageReceivedEvent event) {
-        String message = config.get(ConfigKey.DISCORD_CHAT_MINECRAFT_MESSAGE).asString();
-
-        String username = event.getAuthor().getName();
-        String nickname = username;
-        String roleName = "[no-role]";
-        Color roleColor = Color.GRAY;
-
-        if (event.getMember() != null) {
-            if (event.getMember().getNickname() != null) nickname = event.getMember().getNickname();
-            if (!event.getMember().getRoles().isEmpty()) {
-                Role role = event.getMember().getRoles().get(0);
-                roleName = role.getName();
-                if (role.getColor() != null) roleColor = role.getColor();
-            }
-        }
-
-        String discordMessage = event.getMessage().getContentStripped();
-
-        String hex = "#" + Integer.toHexString(roleColor.getRGB()).substring(2);
-        String channelName = "";
-
-        HashMap<String, String> replacements = new HashMap<>(Map.of(
-                "role", String.format("<%s>%s</%s>", hex, roleName, hex),
-                "user", username,
-                "nick", nickname,
-                "message", discordMessage,
-                "channel", channelName,
-                "epoch", String.valueOf(EpochHelper.getEpochSecond()),
-                "time", getTimeString(),
-                "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString()
-        ));
-        message = CommonHelper.replaceKeys(message, replacements);
-
-        if (config.get(ConfigKey.MINECRAFT_DISCORD_ENABLED).asBoolean()) {
-            if (config.get(ConfigKey.CONSOLE_DISCORD_CHAT).asBoolean()) plugin.log(message);
-            plugin.sendAll(message);
-        }
-    }
 
     private List<String> getPrefixBasedOnServerContext(User user, String... serverKeys) {
         return user.resolveInheritedNodes(QueryOptions.nonContextual())

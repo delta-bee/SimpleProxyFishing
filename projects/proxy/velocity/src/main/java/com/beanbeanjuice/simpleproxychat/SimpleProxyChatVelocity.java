@@ -131,7 +131,7 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
 
                 if (!config.get(ConfigKey.USE_INITIAL_SERVER_STATUS).asBoolean()) return;
                 if (!config.get(ConfigKey.DISCORD_PROXY_STATUS_ENABLED).asBoolean()) return;
-                discordBot.sendMessageEmbed(manager.getAllStatusEmbed());
+                discordBot.sendSystemMessageEmbed(manager.getAllStatusEmbed());
             })
             .delay(config.get(ConfigKey.SERVER_UPDATE_INTERVAL).asInt() * 2L, TimeUnit.SECONDS)
             .schedule();

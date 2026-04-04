@@ -12,15 +12,22 @@ import com.beanbeanjuice.simpleproxychat.shared.helper.Helper;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 
 import java.util.*;
 
 /**
  * /channels [channel] [send|receive]
  *
- * With no arguments: lists all configured channels and the player's current
- * send/receive preference for each.
- * With arguments: toggles the named preference for the named channel.
+ * With no arguments: displays a clickable toggle menu in chat. Each channel row
+ * shows two clickable buttons -- [Send: ON/OFF] and [Receive: ON/OFF] -- that run
+ * /channels &lt;channel&gt; send (or receive) when clicked.
+ *
+ * With arguments: toggles the named preference for the named channel directly.
  */
 public class VelocityChannelsCommand implements SimpleCommand {
 
@@ -59,22 +66,19 @@ public class VelocityChannelsCommand implements SimpleCommand {
             return;
         }
 
-        // /channels  – list all
+        // /channels  -- show clickable toggle menu
         if (args.length == 0) {
             String header = config.get(ConfigKey.MINECRAFT_COMMAND_CHANNELS_HEADER).asString();
             header = CommonHelper.replaceKey(header, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
             player.sendMessage(Helper.stringToComponent(header));
 
+            // Resolve the primary command name (first alias, or fallback "apc-channels")
+            List<String> channelAliases = config.get(ConfigKey.CHANNELS_ALIASES).asList();
+            String baseCmd = channelAliases.isEmpty() ? "apc-channels" : channelAliases.get(0);
+
             for (ChannelDefinition ch : registry.all()) {
                 PlayerChannelPrefsManager.ChannelPrefs prefs = prefsManager.getPrefs(player.getUniqueId(), ch);
-                String sendIcon    = prefs.isSend()    ? "&a✅" : "&c❌";
-                String receiveIcon = prefs.isReceive() ? "&a✅" : "&c❌";
-                String entry = config.get(ConfigKey.MINECRAFT_COMMAND_CHANNELS_ENTRY).asString();
-                entry = CommonHelper.replaceKey(entry, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
-                entry = CommonHelper.replaceKey(entry, "channel", ch.getName());
-                entry = CommonHelper.replaceKey(entry, "send", sendIcon);
-                entry = CommonHelper.replaceKey(entry, "receive", receiveIcon);
-                player.sendMessage(Helper.stringToComponent(entry));
+                player.sendMessage(buildChannelRow(ch, prefs, baseCmd));
             }
             return;
         }
@@ -129,6 +133,45 @@ public class VelocityChannelsCommand implements SimpleCommand {
         }
         if (args.length == 2) return List.of("send", "receive");
         return List.of();
+    }
+
+    /**
+     * Builds a single channel row with two clickable toggle buttons:
+     *   channel-name  [Send: ON]  [Receive: OFF]
+     *
+     * Clicking a button runs "/{baseCmd} {channelName} send" or
+     * "/{baseCmd} {channelName} receive" in the player's command bar.
+     */
+    private Component buildChannelRow(ChannelDefinition ch,
+                                      PlayerChannelPrefsManager.ChannelPrefs prefs,
+                                      String baseCmd) {
+        Component name = Component.text("  " + ch.getName() + " ", NamedTextColor.AQUA);
+
+        // Send button
+        boolean sendOn = prefs.isSend();
+        Component sendBtn = Component.text("[Send: " + (sendOn ? "ON" : "OFF") + "]",
+                sendOn ? NamedTextColor.GREEN : NamedTextColor.RED,
+                TextDecoration.BOLD)
+                .clickEvent(ClickEvent.runCommand("/" + baseCmd + " " + ch.getName() + " send"))
+                .hoverEvent(HoverEvent.showText(Component.text(
+                        sendOn ? "Click to disable sending to " + ch.getName()
+                               : "Click to enable sending to " + ch.getName(),
+                        NamedTextColor.GRAY)));
+
+        Component space = Component.text("  ");
+
+        // Receive button
+        boolean rcvOn = prefs.isReceive();
+        Component rcvBtn = Component.text("[Receive: " + (rcvOn ? "ON" : "OFF") + "]",
+                rcvOn ? NamedTextColor.GREEN : NamedTextColor.RED,
+                TextDecoration.BOLD)
+                .clickEvent(ClickEvent.runCommand("/" + baseCmd + " " + ch.getName() + " receive"))
+                .hoverEvent(HoverEvent.showText(Component.text(
+                        rcvOn ? "Click to stop receiving from " + ch.getName()
+                              : "Click to start receiving from " + ch.getName(),
+                        NamedTextColor.GRAY)));
+
+        return name.append(sendBtn).append(space).append(rcvBtn);
     }
 
     private void sendUsage(Player player) {

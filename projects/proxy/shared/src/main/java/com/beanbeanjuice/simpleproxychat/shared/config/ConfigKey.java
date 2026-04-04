@@ -14,7 +14,7 @@ public enum ConfigKey {
     // CONFIG
     USE_DISCORD (ConfigFileType.CONFIG, "use-discord", Boolean.class),
     BOT_TOKEN (ConfigFileType.CONFIG, "BOT-TOKEN", String.class),
-    CHANNEL_ID (ConfigFileType.CONFIG, "CHANNEL-ID", String.class),
+    SYSTEM_MESSAGES_CHANNEL_ID (ConfigFileType.CONFIG, "system-messages-channel-id", String.class),
     BOT_ACTIVITY_STATUS (ConfigFileType.CONFIG, "bot-activity.status", String.class),
     BOT_ACTIVITY_TYPE (ConfigFileType.CONFIG, "bot-activity.type", String.class),
     BOT_ACTIVITY_TEXT  (ConfigFileType.CONFIG, "bot-activity.text", String.class),
