@@ -71,17 +71,23 @@ public class Config {
                 || newValue.equalsIgnoreCase("GLOBAL_CHANNEL_ID");
 
         String oldValue = yamlConfig.getString("CHANNEL-ID", "");
-        boolean oldExists = !oldValue.isEmpty()
+        boolean oldExists = !oldValue.isEmpty();
+        boolean oldHasRealValue = oldExists
                 && !oldValue.equalsIgnoreCase("GLOBAL_CHANNEL_ID")
-                && !oldValue.equalsIgnoreCase("TOKEN_HERE");
+                && !oldValue.equalsIgnoreCase("TOKEN_HERE")
+                && !oldValue.equalsIgnoreCase("SYSTEM_CHANNEL_ID");
 
-        if (newIsDefault && oldExists) {
+        if (newIsDefault && oldHasRealValue) {
             yamlConfig.set("system-messages-channel-id", oldValue);
-            yamlConfig.remove("CHANNEL-ID");
             System.out.printf(
                 "[AdvancedProxyChat] Migrated CHANNEL-ID (%s) -> system-messages-channel-id%n",
                 oldValue
             );
+        }
+
+        // Always remove the old key if it exists, regardless of whether we used its value.
+        if (oldExists) {
+            yamlConfig.remove("CHANNEL-ID");
         }
     }
 

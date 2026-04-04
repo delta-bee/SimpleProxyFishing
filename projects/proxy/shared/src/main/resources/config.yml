@@ -5,14 +5,16 @@
 #         Supports Mini-Message/Legacy Color Codes
 # ==========================================================
 
-# True if you will be using Discord. The reload command does not work with this.
+# True if you will be using Discord.
 use-discord: false
 
 # Discord Bot Token (IGNORE IF use_discord = false).
 BOT-TOKEN: "TOKEN_HERE"
 
-# Channel to send Discord messages to (IGNORE IF use_discord = false).
-CHANNEL-ID: "GLOBAL_CHANNEL_ID"
+# Discord channel ID for system messages: join/leave/switch events and proxy-status embeds.
+# Chat bridging (Minecraft <-> Discord) is configured per-channel in the 'channels:' section below.
+# Leave as SYSTEM_CHANNEL_ID to disable system messages.
+system-messages-channel-id: "SYSTEM_CHANNEL_ID"
 
 bot-activity:
   # Valid Types: ONLINE, DO_NOT_DISTURB, IDLE, INVISIBLE
