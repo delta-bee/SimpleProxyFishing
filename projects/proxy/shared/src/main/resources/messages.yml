@@ -32,8 +32,8 @@ minecraft:
     enabled: true
     message: "**%server%** %player% » %message%"
     # Default format for multi-channel MC->Discord messages.
-    # Placeholders: %channel%, %server%, %original_server%, %player%, %message%, %epoch%, %time%, %prefix%, %suffix%
-    channel-message: "[%channel%] **%server%** %player% » %message%"
+    # Placeholders: %channel%, %server%, %original_server%, %player%, %escaped_player%, %message%, %epoch%, %time%, %prefix%, %suffix%
+    channel-message: "%player%: %message%"
     embed:
       use: false
       title: "[%server%] %player%"
@@ -108,7 +108,7 @@ discord:
     minecraft-message: "&8[&bDiscord&8] %role% &f%user% &9» &7%message%"
     # Default format when a message arrives from a named channel (multi-channel mode).
     # Placeholders: %channel%, %role%, %user%, %nick%, %message%, %epoch%, %time%, %plugin-prefix%
-    channel-minecraft-message: "&8[&b%channel%&8] %role% &f%user% &9» &7%message%"
+    channel-minecraft-message: "&8[&b%channel%&8] &f%user%: &7%message%"
   topic:
     online: "There are %online% players online."
     offline: "The proxy is offline."
@@ -138,4 +138,4 @@ update-message: "&7There is an update! You are on &c%old%. New version is &a%new
 
 
 # DO NOT TOUCH THIS
-file-version: 12
+file-version: 13

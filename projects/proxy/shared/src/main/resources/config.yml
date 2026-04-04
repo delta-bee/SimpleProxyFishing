@@ -141,9 +141,11 @@ channels:
     channel-id: "YOUR_CHANNEL_ID_HERE"
     disable-send: false
     disable-receive: false
-    # Optional per-channel format overrides. Remove these lines to use the global defaults.
-    # mc-to-discord: "[%channel%] **%server%** %player% -> %message%"
-    # discord-to-mc: "&8[&b%channel%&8] %role% &f%user% &9-> &7%message%"
+    # Optional per-channel format overrides. Remove these lines to use the global defaults from messages.yml.
+    # mc-to-discord placeholders: %channel%, %server%, %original_server%, %player%, %escaped_player%, %message%, %epoch%, %time%, %prefix%, %suffix%
+    # mc-to-discord: "%player%: %message%"
+    # discord-to-mc placeholders: %channel%, %role%, %user%, %nick%, %message%, %epoch%, %time%, %plugin-prefix%
+    # discord-to-mc: "&8[&b%channel%&8] &f%user%: &7%message%"
 
 
 # DO NOT TOUCH THIS

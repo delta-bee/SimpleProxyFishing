@@ -52,7 +52,14 @@ public class DiscordChatHandler extends ListenerAdapter {
         ChannelDefinition def = maybeDef.get();
         if (def.isDisableReceive()) return;
 
-        sendFromDiscord.accept(def, event);
+        try {
+            sendFromDiscord.accept(def, event);
+        } catch (Exception e) {
+            System.err.printf(
+                "[AdvancedProxyChat] Exception while processing Discord message from channel '%s': %s%n",
+                def.getName(), e.getMessage()
+            );
+        }
     }
 
 }
