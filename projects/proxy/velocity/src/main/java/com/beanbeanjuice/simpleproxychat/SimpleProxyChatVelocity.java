@@ -99,6 +99,9 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
                 (task) -> this.proxyServer.getScheduler().buildTask(this, task).schedule(),
                 this::getOnlinePlayers, this::getMaxPlayers);
 
+        // Wire the bot's reload handler so that /apc-reload re-syncs the bot.
+        this.config.addReloadListener(discordBot::reload);
+
         // Bot ready.
         this.proxyServer.getScheduler().buildTask(this, () -> {
             try { discordBot.start(); }

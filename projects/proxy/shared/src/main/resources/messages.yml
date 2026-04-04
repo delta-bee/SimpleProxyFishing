@@ -76,6 +76,7 @@ minecraft:
       expired: "%plugin-prefix%&7Your listen session for &b%channel% &7has ended."
       usage: "%plugin-prefix%&7Usage: &b/listen &7<channel> <amount>"
       no-such-channel: "%plugin-prefix%&cUnknown channel: &7%channel%"
+      receive-disabled: "%plugin-prefix%&cReceiving is disabled for &7%channel%&c. You cannot use /listen on it."
     history:
       header: "%plugin-prefix%&7--- &bHistory: %channel% &7(last %amount%) ---"
       empty: "%plugin-prefix%&7No history for &b%channel%&7 yet."

@@ -97,6 +97,7 @@ public enum ConfigKey {
     MINECRAFT_COMMAND_LISTEN_EXPIRED            (ConfigFileType.MESSAGES, "minecraft.command.listen.expired",              String.class),
     MINECRAFT_COMMAND_LISTEN_USAGE              (ConfigFileType.MESSAGES, "minecraft.command.listen.usage",                String.class),
     MINECRAFT_COMMAND_LISTEN_NO_SUCH_CHANNEL    (ConfigFileType.MESSAGES, "minecraft.command.listen.no-such-channel",      String.class),
+    MINECRAFT_COMMAND_LISTEN_RECEIVE_DISABLED   (ConfigFileType.MESSAGES, "minecraft.command.listen.receive-disabled",     String.class),
     MINECRAFT_COMMAND_HISTORY_HEADER            (ConfigFileType.MESSAGES, "minecraft.command.history.header",              String.class),
     MINECRAFT_COMMAND_HISTORY_EMPTY             (ConfigFileType.MESSAGES, "minecraft.command.history.empty",               String.class),
     MINECRAFT_COMMAND_HISTORY_USAGE             (ConfigFileType.MESSAGES, "minecraft.command.history.usage",               String.class),

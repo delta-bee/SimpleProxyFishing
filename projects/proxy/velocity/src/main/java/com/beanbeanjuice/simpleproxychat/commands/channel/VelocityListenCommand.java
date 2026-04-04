@@ -77,6 +77,17 @@ public class VelocityListenCommand implements SimpleCommand {
         }
 
         ChannelDefinition ch = maybeCh.get();
+
+        // Reject if the channel has receive globally banned (disable-receive: true),
+        // or if the player has toggled receive off for this channel.
+        if (ch.isDisableReceive() || !prefsManager.getPrefs(player.getUniqueId(), ch).isReceive()) {
+            String msg = config.get(ConfigKey.MINECRAFT_COMMAND_LISTEN_RECEIVE_DISABLED).asString();
+            msg = CommonHelper.replaceKey(msg, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
+            msg = CommonHelper.replaceKey(msg, "channel", ch.getName());
+            player.sendMessage(Helper.stringToComponent(msg));
+            return;
+        }
+
         prefsManager.setListenOnce(player.getUniqueId(), ch, amount);
 
         String msg = config.get(ConfigKey.MINECRAFT_COMMAND_LISTEN_STARTED).asString();
