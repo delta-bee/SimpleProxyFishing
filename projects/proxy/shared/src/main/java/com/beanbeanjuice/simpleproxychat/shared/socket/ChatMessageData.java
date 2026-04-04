@@ -45,7 +45,7 @@ public abstract class ChatMessageData extends MessageData {
             throw new NullPointerException("Minecraft or Discord message is null!");
 
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF("SimpleProxyChat");
+        out.writeUTF("AdvancedProxyChat");
         out.writeUTF(this.getType().name());
         out.writeUTF(this.servername);
         out.writeUTF(this.playerName);

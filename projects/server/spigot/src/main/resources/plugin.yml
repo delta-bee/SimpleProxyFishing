@@ -1,10 +1,10 @@
-name: SimpleProxyChatHelper
+name: AdvancedProxyChatHelper
 version: '${version}'
-main: com.beanbeanjuice.simpleproxychathelper.SimpleProxyChatHelper
-prefix: SimpleProxyChatHelper
+main: com.beanbeanjuice.advancedproxychathelper.AdvancedProxyChatHelper
+prefix: AdvancedProxyChatHelper
 load: STARTUP
 softdepend: [PlaceholderAPI]
 authors: [beanbeanjuice]
-description: A helper plugin for the SimpleProxyChat proxy plugin.
-website: https://www.github.com/beanbeanjuice/SimpleProxyChat
+description: A helper plugin for the AdvancedProxyChat proxy plugin.
+website: https://www.github.com/beanbeanjuice/AdvancedProxyChat
 api-version: 1.13

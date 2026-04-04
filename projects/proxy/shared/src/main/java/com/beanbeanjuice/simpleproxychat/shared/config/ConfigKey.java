@@ -14,7 +14,7 @@ public enum ConfigKey {
     // CONFIG
     USE_DISCORD (ConfigFileType.CONFIG, "use-discord", Boolean.class),
     BOT_TOKEN (ConfigFileType.CONFIG, "BOT-TOKEN", String.class),
-    CHANNEL_ID (ConfigFileType.CONFIG, "CHANNEL-ID", String.class),
+    SYSTEM_MESSAGES_CHANNEL_ID (ConfigFileType.CONFIG, "system-messages-channel-id", String.class),
     BOT_ACTIVITY_STATUS (ConfigFileType.CONFIG, "bot-activity.status", String.class),
     BOT_ACTIVITY_TYPE (ConfigFileType.CONFIG, "bot-activity.type", String.class),
     BOT_ACTIVITY_TEXT  (ConfigFileType.CONFIG, "bot-activity.text", String.class),
@@ -29,7 +29,7 @@ public enum ConfigKey {
     TIMESTAMP_TIMEZONE (ConfigFileType.CONFIG, "timestamp.timezone", DateTimeZone.class),
     USE_HELPER (ConfigFileType.CONFIG, "use-helper", Boolean.class),
     UPDATE_NOTIFICATIONS (ConfigFileType.CONFIG, "update-notifications", Boolean.class),
-    USE_SIMPLE_PROXY_CHAT_BANNING_SYSTEM (ConfigFileType.CONFIG, "use-simple-proxy-chat-banning-system", Boolean.class),
+    USE_ADVANCED_PROXY_CHAT_BANNING_SYSTEM (ConfigFileType.CONFIG, "use-advanced-proxy-chat-banning-system", Boolean.class),
     SEND_PREVIOUS_MESSAGES_ON_SWITCH_ENABLED (ConfigFileType.CONFIG, "send-previous-messages-on-switch.enabled", Boolean.class),
     SEND_PREVIOUS_MESSAGES_ON_SWITCH_AMOUNT (ConfigFileType.CONFIG, "send-previous-messages-on-switch.amount", Integer.class),
     RELOAD_ALIASES (ConfigFileType.CONFIG, "commands.reload-aliases", List.class),
@@ -39,6 +39,10 @@ public enum ConfigKey {
     WHISPER_ALIASES (ConfigFileType.CONFIG, "commands.whisper-aliases", List.class),
     REPLY_ALIASES (ConfigFileType.CONFIG, "commands.reply-aliases", List.class),
     BROADCAST_ALIASES (ConfigFileType.CONFIG, "commands.broadcast-aliases", List.class),
+    // Added in file-version 18: multi-channel Discord bridge command aliases.
+    CHANNELS_ALIASES (ConfigFileType.CONFIG, "commands.channels-aliases", List.class),
+    LISTEN_ALIASES   (ConfigFileType.CONFIG, "commands.listen-aliases",   List.class),
+    HISTORY_ALIASES  (ConfigFileType.CONFIG, "commands.history-aliases",  List.class),
     DISABLED_SERVERS (ConfigFileType.CONFIG, "disabled-servers", List.class),
 
     // MESSAGES
@@ -80,6 +84,25 @@ public enum ConfigKey {
     MINECRAFT_COMMAND_BROADCAST_USAGE (ConfigFileType.MESSAGES, "minecraft.command.broadcast.usage", String.class),
     MINECRAFT_COMMAND_BROADCAST_MESSAGE (ConfigFileType.MESSAGES, "minecraft.command.broadcast.message", String.class),
 
+    // Added in file-version 12: multi-channel command messages.
+    MINECRAFT_COMMAND_CHANNELS_HEADER           (ConfigFileType.MESSAGES, "minecraft.command.channels.header",             String.class),
+    MINECRAFT_COMMAND_CHANNELS_ENTRY            (ConfigFileType.MESSAGES, "minecraft.command.channels.entry",              String.class),
+    MINECRAFT_COMMAND_CHANNELS_TOGGLED_SEND_ON  (ConfigFileType.MESSAGES, "minecraft.command.channels.toggled-send-on",    String.class),
+    MINECRAFT_COMMAND_CHANNELS_TOGGLED_SEND_OFF (ConfigFileType.MESSAGES, "minecraft.command.channels.toggled-send-off",   String.class),
+    MINECRAFT_COMMAND_CHANNELS_TOGGLED_RCV_ON   (ConfigFileType.MESSAGES, "minecraft.command.channels.toggled-receive-on", String.class),
+    MINECRAFT_COMMAND_CHANNELS_TOGGLED_RCV_OFF  (ConfigFileType.MESSAGES, "minecraft.command.channels.toggled-receive-off",String.class),
+    MINECRAFT_COMMAND_CHANNELS_NO_CHANNELS      (ConfigFileType.MESSAGES, "minecraft.command.channels.no-channels",        String.class),
+    MINECRAFT_COMMAND_CHANNELS_USAGE            (ConfigFileType.MESSAGES, "minecraft.command.channels.usage",              String.class),
+    MINECRAFT_COMMAND_LISTEN_STARTED            (ConfigFileType.MESSAGES, "minecraft.command.listen.started",              String.class),
+    MINECRAFT_COMMAND_LISTEN_EXPIRED            (ConfigFileType.MESSAGES, "minecraft.command.listen.expired",              String.class),
+    MINECRAFT_COMMAND_LISTEN_USAGE              (ConfigFileType.MESSAGES, "minecraft.command.listen.usage",                String.class),
+    MINECRAFT_COMMAND_LISTEN_NO_SUCH_CHANNEL    (ConfigFileType.MESSAGES, "minecraft.command.listen.no-such-channel",      String.class),
+    MINECRAFT_COMMAND_LISTEN_RECEIVE_DISABLED   (ConfigFileType.MESSAGES, "minecraft.command.listen.receive-disabled",     String.class),
+    MINECRAFT_COMMAND_HISTORY_HEADER            (ConfigFileType.MESSAGES, "minecraft.command.history.header",              String.class),
+    MINECRAFT_COMMAND_HISTORY_EMPTY             (ConfigFileType.MESSAGES, "minecraft.command.history.empty",               String.class),
+    MINECRAFT_COMMAND_HISTORY_USAGE             (ConfigFileType.MESSAGES, "minecraft.command.history.usage",               String.class),
+    MINECRAFT_COMMAND_HISTORY_NO_SUCH_CHANNEL   (ConfigFileType.MESSAGES, "minecraft.command.history.no-such-channel",     String.class),
+
     DISCORD_JOIN_ENABLED (ConfigFileType.MESSAGES, "discord.join.enabled", Boolean.class),
     DISCORD_JOIN_MESSAGE (ConfigFileType.MESSAGES, "discord.join.message", String.class),
     DISCORD_JOIN_USE_TIMESTAMP (ConfigFileType.MESSAGES, "discord.join.use-timestamp", Boolean.class),
@@ -94,6 +117,8 @@ public enum ConfigKey {
     DISCORD_SWITCH_USE_EMBED (ConfigFileType.MESSAGES, "discord.switch.use-embed", Boolean.class),
     DISCORD_CHAT_ENABLED (ConfigFileType.MESSAGES, "discord.chat.enabled", Boolean.class),
     DISCORD_CHAT_MINECRAFT_MESSAGE (ConfigFileType.MESSAGES, "discord.chat.minecraft-message", String.class),
+    DISCORD_TO_MC_FORMAT_DEFAULT (ConfigFileType.MESSAGES, "discord.chat.channel-minecraft-message", String.class),
+    MC_TO_DISCORD_FORMAT_DEFAULT (ConfigFileType.MESSAGES, "minecraft.discord.channel-message", String.class),
     DISCORD_TOPIC_ONLINE (ConfigFileType.MESSAGES, "discord.topic.online", String.class),
     DISCORD_TOPIC_OFFLINE  (ConfigFileType.MESSAGES, "discord.topic.offline", String.class),
     DISCORD_PROXY_STATUS_ENABLED (ConfigFileType.MESSAGES, "discord.proxy-status.enabled", Boolean.class),

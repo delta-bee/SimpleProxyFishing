@@ -3,6 +3,9 @@ package com.beanbeanjuice.simpleproxychat;
 import com.beanbeanjuice.simpleproxychat.commands.VelocityBroadcastCommand;
 import com.beanbeanjuice.simpleproxychat.commands.VelocityChatToggleCommand;
 import com.beanbeanjuice.simpleproxychat.commands.VelocityReloadCommand;
+import com.beanbeanjuice.simpleproxychat.commands.channel.VelocityChannelsCommand;
+import com.beanbeanjuice.simpleproxychat.commands.channel.VelocityHistoryCommand;
+import com.beanbeanjuice.simpleproxychat.commands.channel.VelocityListenCommand;
 import com.beanbeanjuice.simpleproxychat.commands.whisper.VelocityReplyCommand;
 import com.beanbeanjuice.simpleproxychat.commands.whisper.VelocityWhisperCommand;
 import com.beanbeanjuice.simpleproxychat.commands.ban.VelocityBanCommand;
@@ -12,6 +15,7 @@ import com.beanbeanjuice.simpleproxychat.common.CommonUpdateChecker;
 import com.beanbeanjuice.simpleproxychat.common.Tuple;
 import com.beanbeanjuice.simpleproxychat.socket.VelocityPluginMessagingListener;
 import com.beanbeanjuice.simpleproxychat.shared.helper.BanHelper;
+import com.beanbeanjuice.simpleproxychat.shared.channel.PlayerChannelPrefsManager;
 import com.beanbeanjuice.simpleproxychat.shared.ISimpleProxyChat;
 import com.beanbeanjuice.simpleproxychat.shared.helper.WhisperHandler;
 import com.beanbeanjuice.simpleproxychat.shared.config.Permission;
@@ -63,6 +67,7 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
     @Getter private Bot discordBot;
     @Getter private WhisperHandler whisperHandler;
     @Getter private BanHelper banHelper;
+    @Getter private PlayerChannelPrefsManager channelPrefsManager;
     private Metrics metrics;
     private VelocityServerListener serverListener;
 
@@ -80,6 +85,7 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
         this.dataDirectory = dataDirectory.toFile();
         this.config = new Config(dataDirectory.toFile());
         this.config.initialize();
+        this.channelPrefsManager = new PlayerChannelPrefsManager();
 
         // Plugin enabled.
         this.getLogger().info("Plugin has been initialized.");
@@ -89,7 +95,12 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
     public void onProxyInitialization(ProxyInitializeEvent event) {
         // Initialize discord bot.
         this.getLogger().info("Attempting to initialize Discord bot... (IF ENABLED)");
-        discordBot = new Bot(this.config, this.getLogger()::warn, this::getOnlinePlayers, this::getMaxPlayers);
+        discordBot = new Bot(this.config, this.getLogger()::warn,
+                (task) -> this.proxyServer.getScheduler().buildTask(this, task).schedule(),
+                this::getOnlinePlayers, this::getMaxPlayers);
+
+        // Wire the bot's reload handler so that /apc-reload re-syncs the bot.
+        this.config.addReloadListener(discordBot::reload);
 
         // Bot ready.
         this.proxyServer.getScheduler().buildTask(this, () -> {
@@ -125,7 +136,7 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
 
                 if (!config.get(ConfigKey.USE_INITIAL_SERVER_STATUS).asBoolean()) return;
                 if (!config.get(ConfigKey.DISCORD_PROXY_STATUS_ENABLED).asBoolean()) return;
-                discordBot.sendMessageEmbed(manager.getAllStatusEmbed());
+                discordBot.sendSystemMessageEmbed(manager.getAllStatusEmbed());
             })
             .delay(config.get(ConfigKey.SERVER_UPDATE_INTERVAL).asInt() * 2L, TimeUnit.SECONDS)
             .schedule();
@@ -133,7 +144,7 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
     }
 
     private void startUpdateChecker() {
-        String currentVersion = this.proxyServer.getPluginManager().getPlugin("simpleproxychat")
+        String currentVersion = this.proxyServer.getPluginManager().getPlugin("advancedproxychat")
                 .flatMap(pluginContainer -> pluginContainer.getDescription().getVersion())
                 .get();
 
@@ -194,12 +205,12 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
         }
 
         // Registering the Simple Banning System
-        if (!this.isLiteBansEnabled() && !this.isAdvancedBanEnabled() && config.get(ConfigKey.USE_SIMPLE_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
-            getLogger().info("LiteBans and AdvancedBan not found. Using the built-in banning system for SimpleProxyChat...");
+        if (!this.isLiteBansEnabled() && !this.isAdvancedBanEnabled() && config.get(ConfigKey.USE_ADVANCED_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
+            getLogger().info("LiteBans and AdvancedBan not found. Using the built-in banning system for AdvancedProxyChat...");
             banHelper = new BanHelper(dataDirectory);
             banHelper.initialize();
         } else {
-            config.overwrite(ConfigKey.USE_SIMPLE_PROXY_CHAT_BANNING_SYSTEM, false);
+            config.overwrite(ConfigKey.USE_ADVANCED_PROXY_CHAT_BANNING_SYSTEM, false);
         }
     }
 
@@ -229,7 +240,7 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
                 .plugin(this)
                 .build();
 
-        CommandMeta whisperCommand = commandManager.metaBuilder("spc-whisper")
+        CommandMeta whisperCommand = commandManager.metaBuilder("msg")
                 .aliases(config.get(ConfigKey.WHISPER_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();
@@ -249,8 +260,23 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
                 .plugin(this)
                 .build();
 
-        CommandMeta broadcastCommand = commandManager.metaBuilder("spc-broadcast")
+        CommandMeta broadcastCommand = commandManager.metaBuilder("broadcast")
                 .aliases(config.get(ConfigKey.BROADCAST_ALIASES).asList().toArray(new String[0]))
+                .plugin(this)
+                .build();
+
+        CommandMeta channelsCommand = commandManager.metaBuilder("channels")
+                .aliases(config.get(ConfigKey.CHANNELS_ALIASES).asList().toArray(new String[0]))
+                .plugin(this)
+                .build();
+
+        CommandMeta listenCommand = commandManager.metaBuilder("listen")
+                .aliases(config.get(ConfigKey.LISTEN_ALIASES).asList().toArray(new String[0]))
+                .plugin(this)
+                .build();
+
+        CommandMeta historyCommand = commandManager.metaBuilder("history")
+                .aliases(config.get(ConfigKey.HISTORY_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();
 
@@ -259,9 +285,12 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
         commandManager.register(whisperCommand, new VelocityWhisperCommand(this));
         commandManager.register(replyCommand, new VelocityReplyCommand(this));
         commandManager.register(broadcastCommand, new VelocityBroadcastCommand(this));
+        commandManager.register(channelsCommand, new VelocityChannelsCommand(this));
+        commandManager.register(listenCommand, new VelocityListenCommand(this));
+        commandManager.register(historyCommand, new VelocityHistoryCommand(this));
 
         // Only enable if the Simple Banning System is enabled.
-        if (config.get(ConfigKey.USE_SIMPLE_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
+        if (config.get(ConfigKey.USE_ADVANCED_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
             commandManager.register(banCommand, new VelocityBanCommand(this));
             commandManager.register(unbanCommand, new VelocityUnbanCommand(this));
         }
@@ -356,6 +385,20 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
         logger.info(Helper.sanitize(message));
         Component messageComponent = MiniMessage.miniMessage().deserialize(message);
         proxyServer.getAllPlayers().forEach((player) -> player.sendMessage(messageComponent));
+    }
+
+    @Override
+    public void sendPerPlayer(String message, java.util.function.Predicate<java.util.UUID> filter) {
+        Component messageComponent = MiniMessage.miniMessage().deserialize(message);
+        proxyServer.getAllPlayers().stream()
+                .filter(p -> filter.test(p.getUniqueId()))
+                .forEach(p -> p.sendMessage(messageComponent));
+    }
+
+    @Override
+    public void sendToPlayer(java.util.UUID playerId, String message) {
+        proxyServer.getPlayer(playerId).ifPresent(p ->
+                p.sendMessage(MiniMessage.miniMessage().deserialize(message)));
     }
 
     @Override

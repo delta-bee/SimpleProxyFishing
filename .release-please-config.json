@@ -2,7 +2,7 @@
   "packages": {
     "projects/proxy": {
       "release-type": "simple",
-      "package-name": "SimpleProxyChat",
+      "package-name": "AdvancedProxyChat",
       "bump-minor-pre-major": true
     },
     "projects/server": {

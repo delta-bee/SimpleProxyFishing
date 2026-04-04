@@ -1,4 +1,4 @@
-package com.beanbeanjuice.simpleproxychathelper.shared.config;
+package com.beanbeanjuice.advancedproxychathelper.shared.config;
 
 import java.util.HashMap;
 

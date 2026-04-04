@@ -44,8 +44,8 @@ allprojects {
     }
 
     tasks.withType<ShadowJar> {
-        relocate("org.bstats", "com.beanbeanjuice.simpleproxychathelper.libs.org.bstats")
-        relocate("org.apache.maven", "com.beanbeanjuice.simpleproxychathelper.libs.org.apache.maven")
+        relocate("org.bstats", "com.beanbeanjuice.advancedproxychathelper.libs.org.bstats")
+        relocate("org.apache.maven", "com.beanbeanjuice.advancedproxychathelper.libs.org.apache.maven")
     }
 }
 

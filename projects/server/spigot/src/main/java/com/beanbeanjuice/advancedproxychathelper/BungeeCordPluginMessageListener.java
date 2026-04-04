@@ -1,6 +1,6 @@
-package com.beanbeanjuice.simpleproxychathelper;
+package com.beanbeanjuice.advancedproxychathelper;
 
-import com.beanbeanjuice.simpleproxychathelper.shared.config.ConfigKey;
+import com.beanbeanjuice.advancedproxychathelper.shared.config.ConfigKey;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
@@ -13,9 +13,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class BungeeCordPluginMessageListener implements PluginMessageListener {
 
-    private final SimpleProxyChatHelper plugin;
+    private final AdvancedProxyChatHelper plugin;
 
-    public BungeeCordPluginMessageListener(SimpleProxyChatHelper plugin) {
+    public BungeeCordPluginMessageListener(AdvancedProxyChatHelper plugin) {
         this.plugin = plugin;
     }
 
@@ -25,7 +25,7 @@ public class BungeeCordPluginMessageListener implements PluginMessageListener {
 
         ByteArrayDataInput in = ByteStreams.newDataInput(message);
         String subChannel = in.readUTF();
-        if (!subChannel.equals(SimpleProxyChatHelper.getSubChannel())) return;
+        if (!subChannel.equals(AdvancedProxyChatHelper.getSubChannel())) return;
 
         MessageType type = MessageType.valueOf(in.readUTF());
 
@@ -56,7 +56,7 @@ public class BungeeCordPluginMessageListener implements PluginMessageListener {
         }
 
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF(SimpleProxyChatHelper.getSubChannel());
+        out.writeUTF(AdvancedProxyChatHelper.getSubChannel());
         out.writeUTF(type.name());
         out.writeUTF(serverName);
         out.writeUTF(playerName);

@@ -1,8 +1,8 @@
 {
-  "id": "simpleproxychat",
-  "name": "SimpleProxyChat",
+  "id": "advancedproxychat",
+  "name": "AdvancedProxyChat",
   "version": "${version}",
-  "description": "A simple plugin to send chat messages between servers as well as to Discord.",
+  "description": "An advanced plugin to route chat messages between servers and Discord channels.",
   "url": "https://github.com/beanbeanjuice/SimpleProxyChat",
   "authors": [
     "beanbeanjuice"

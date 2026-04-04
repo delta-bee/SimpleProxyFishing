@@ -120,7 +120,7 @@ public class BungeeServerListener implements Listener {
     public void onPreLogin(PreLoginEvent event) {
         String playerName = event.getConnection().getName();
 
-        if (!plugin.getConfig().get(ConfigKey.USE_SIMPLE_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) return;
+        if (!plugin.getConfig().get(ConfigKey.USE_ADVANCED_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) return;
         if (!plugin.getBanHelper().isBanned(playerName)) return;
 
         event.setCancelled(true);

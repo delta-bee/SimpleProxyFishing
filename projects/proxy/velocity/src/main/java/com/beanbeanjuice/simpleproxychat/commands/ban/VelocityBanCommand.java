@@ -26,7 +26,7 @@ public class VelocityBanCommand implements SimpleCommand {
 
     @Override
     public void execute(Invocation invocation) {
-        if (!config.get(ConfigKey.USE_SIMPLE_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
+        if (!config.get(ConfigKey.USE_ADVANCED_PROXY_CHAT_BANNING_SYSTEM).asBoolean()) {
             invocation.source().sendMessage(Helper.stringToComponent("&cThe banning system is disabled..."));
             return;
         }
