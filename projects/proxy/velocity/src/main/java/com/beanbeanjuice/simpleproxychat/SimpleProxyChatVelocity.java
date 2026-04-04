@@ -235,7 +235,7 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
                 .plugin(this)
                 .build();
 
-        CommandMeta whisperCommand = commandManager.metaBuilder("spc-whisper")
+        CommandMeta whisperCommand = commandManager.metaBuilder("msg")
                 .aliases(config.get(ConfigKey.WHISPER_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();
@@ -255,22 +255,22 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
                 .plugin(this)
                 .build();
 
-        CommandMeta broadcastCommand = commandManager.metaBuilder("spc-broadcast")
+        CommandMeta broadcastCommand = commandManager.metaBuilder("broadcast")
                 .aliases(config.get(ConfigKey.BROADCAST_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();
 
-        CommandMeta channelsCommand = commandManager.metaBuilder("apc-channels")
+        CommandMeta channelsCommand = commandManager.metaBuilder("channels")
                 .aliases(config.get(ConfigKey.CHANNELS_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();
 
-        CommandMeta listenCommand = commandManager.metaBuilder("apc-listen")
+        CommandMeta listenCommand = commandManager.metaBuilder("listen")
                 .aliases(config.get(ConfigKey.LISTEN_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();
 
-        CommandMeta historyCommand = commandManager.metaBuilder("apc-history")
+        CommandMeta historyCommand = commandManager.metaBuilder("history")
                 .aliases(config.get(ConfigKey.HISTORY_ALIASES).asList().toArray(new String[0]))
                 .plugin(this)
                 .build();

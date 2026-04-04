@@ -28,7 +28,7 @@ public class BungeeHistoryCommand extends Command {
     private final PlayerChannelPrefsManager prefsManager;
 
     public BungeeHistoryCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("apc-history", Permission.COMMAND_HISTORY.getPermissionNode(), aliases);
+        super("history", Permission.COMMAND_HISTORY.getPermissionNode(), aliases);
         this.plugin = plugin;
         this.config = plugin.getConfig();
         this.prefsManager = plugin.getChannelPrefsManager();

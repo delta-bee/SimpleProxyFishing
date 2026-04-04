@@ -81,26 +81,6 @@ public class ChatHandler {
         // Log to Console
         if (config.get(ConfigKey.CONSOLE_CHAT).asBoolean()) plugin.log(minecraftMessage);
 
-        // Log to Discord
-        if (config.get(ConfigKey.MINECRAFT_DISCORD_ENABLED).asBoolean()) {
-            if (config.get(ConfigKey.MINECRAFT_DISCORD_EMBED_USE).asBoolean()) {
-
-                Color color = config.get(ConfigKey.MINECRAFT_DISCORD_EMBED_COLOR).asColor();
-
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                        .setAuthor(discordEmbedTitle, null, getPlayerHeadURL(chatMessageData.getPlayerUUID()))
-                        .setDescription(discordEmbedMessage)
-                        .setColor(color);
-
-                if (config.get(ConfigKey.MINECRAFT_DISCORD_EMBED_USE_TIMESTAMP).asBoolean())
-                    embedBuilder.setTimestamp(EpochHelper.getEpochInstant());
-
-                discordBot.sendSystemMessageEmbed(embedBuilder.build());
-            } else {
-                discordBot.sendSystemMessage(discordMessage);
-            }
-        }
-
         // Log to Minecraft
         if (config.get(ConfigKey.MINECRAFT_CHAT_ENABLED).asBoolean()) {
             chatMessageData.chatSendToAllOtherPlayers(minecraftMessage);

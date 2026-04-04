@@ -39,7 +39,7 @@ public class BungeeChannelsCommand extends Command {
     private final PlayerChannelPrefsManager prefsManager;
 
     public BungeeChannelsCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("apc-channels", Permission.COMMAND_CHANNELS.getPermissionNode(), aliases);
+        super("channels", Permission.COMMAND_CHANNELS.getPermissionNode(), aliases);
         this.plugin = plugin;
         this.config = plugin.getConfig();
         this.prefsManager = plugin.getChannelPrefsManager();

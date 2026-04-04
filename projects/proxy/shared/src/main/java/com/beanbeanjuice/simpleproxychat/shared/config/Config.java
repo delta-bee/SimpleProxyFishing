@@ -48,11 +48,41 @@ public class Config {
             yamlMessages = loadConfig("messages.yml");
             yamlConfig.update();
             yamlMessages.update();
+            migrateChannelId();
             renameSPCPrefix();
             yamlConfig.save();
             yamlMessages.save();
             readConfig();
         } catch (IOException ignored) { }
+    }
+
+    /**
+     * Fallback migration: if the new {@code system-messages-channel-id} key is still at its
+     * placeholder value but the old {@code CHANNEL-ID} key exists (e.g. because BoostedYAML's
+     * relocation did not fire for this file-version), copy the value over and remove the old key.
+     *
+     * <p>This runs <em>after</em> {@link YamlDocument#update()} so it covers both the normal
+     * relocation path and any edge case where the old key survives.
+     */
+    private void migrateChannelId() {
+        String newValue = yamlConfig.getString("system-messages-channel-id", "");
+        boolean newIsDefault = newValue.isEmpty()
+                || newValue.equalsIgnoreCase("SYSTEM_CHANNEL_ID")
+                || newValue.equalsIgnoreCase("GLOBAL_CHANNEL_ID");
+
+        String oldValue = yamlConfig.getString("CHANNEL-ID", "");
+        boolean oldExists = !oldValue.isEmpty()
+                && !oldValue.equalsIgnoreCase("GLOBAL_CHANNEL_ID")
+                && !oldValue.equalsIgnoreCase("TOKEN_HERE");
+
+        if (newIsDefault && oldExists) {
+            yamlConfig.set("system-messages-channel-id", oldValue);
+            yamlConfig.remove("CHANNEL-ID");
+            System.out.printf(
+                "[AdvancedProxyChat] Migrated CHANNEL-ID (%s) -> system-messages-channel-id%n",
+                oldValue
+            );
+        }
     }
 
     /**

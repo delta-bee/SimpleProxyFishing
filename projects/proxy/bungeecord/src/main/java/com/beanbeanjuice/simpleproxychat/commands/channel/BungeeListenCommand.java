@@ -28,7 +28,7 @@ public class BungeeListenCommand extends Command {
     private final PlayerChannelPrefsManager prefsManager;
 
     public BungeeListenCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("apc-listen", Permission.COMMAND_LISTEN.getPermissionNode(), aliases);
+        super("listen", Permission.COMMAND_LISTEN.getPermissionNode(), aliases);
         this.plugin = plugin;
         this.config = plugin.getConfig();
         this.prefsManager = plugin.getChannelPrefsManager();

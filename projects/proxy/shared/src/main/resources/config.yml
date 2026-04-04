@@ -100,18 +100,22 @@ commands:
   unban-aliases:
     - "apc-unban"
   whisper-aliases:
+    - "msg"
     - "apc-msg"
   reply-aliases:
     - "apc-r"
   broadcast-aliases:
-    - "apc-bc"
     - "broadcast"
+    - "apc-bc"
   # Multi-channel Discord bridge commands.
   channels-aliases:
+    - "channels"
     - "apc-channels"
   listen-aliases:
+    - "listen"
     - "apc-listen"
   history-aliases:
+    - "history"
     - "apc-history"
 
 # Disable servers from sending/receiving proxy messages.
@@ -127,25 +131,17 @@ disabled-servers:
 #   !<prefix1><prefix2>  (stack multiple flags at once)
 # They can also toggle default send/receive per-channel via
 #   /channels  (or any configured alias)
-# and inspect history with  /apc-listen  and  /apc-history.
+# and inspect history with  /listen  and  /history.
 # ==========================================================
-channels: []
-# Uncomment and edit the block below to add your first channel:
-#
-# channels:
-#   - name: "staff"               # Human-readable name, used in /channels and /apc-history.
-#     prefix: "s"                # Single letter used in the !-flag system.
-#     channel-id: "000000000000" # Discord channel snowflake ID.
-#     disable-send: false        # true -> Minecraft chat is never forwarded here.
-#     disable-receive: false     # true -> Messages from this channel never appear in-game.
-#     mc-to-discord: "[%channel%] **%server%** %player% » %message%"   # optional override
-#     discord-to-mc: "&8[&b%channel%&8] %role% &f%user% &9» &7%message%" # optional override
-#
-#   - name: "discord"
-#     prefix: "d"
-#     channel-id: "111111111111"
-#     disable-send: false
-#     disable-receive: false
+channels:
+  - name: "discord"
+    prefix: "d"
+    channel-id: "YOUR_CHANNEL_ID_HERE"
+    disable-send: false
+    disable-receive: false
+    # Optional per-channel format overrides. Remove these lines to use the global defaults.
+    # mc-to-discord: "[%channel%] **%server%** %player% -> %message%"
+    # discord-to-mc: "&8[&b%channel%&8] %role% &f%user% &9-> &7%message%"
 
 
 # DO NOT TOUCH THIS

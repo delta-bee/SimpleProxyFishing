@@ -316,12 +316,50 @@ public class Bot {
         // Sync the channel registry from config now that JDA is ready.
         this.channelRegistry = config.getChannelRegistry();
 
+        validateDiscordConfig();
         sendProxyStatus(true);
 
         this.updateActivity();
         this.updateStatus();
 
         this.runnableQueue.forEach(Runnable::run);
+    }
+
+    /**
+     * Logs actionable warnings for common Discord configuration mistakes, so admins
+     * know exactly what to fix without having to dig through the code.
+     */
+    private void validateDiscordConfig() {
+        String sysId = config.get(ConfigKey.SYSTEM_MESSAGES_CHANNEL_ID).asString();
+        boolean sysChannelConfigured = !sysId.isEmpty()
+                && !sysId.equalsIgnoreCase("SYSTEM_CHANNEL_ID")
+                && !sysId.equalsIgnoreCase("GLOBAL_CHANNEL_ID");
+
+        if (!sysChannelConfigured) {
+            errorLogger.accept("[Config] 'system-messages-channel-id' is not set. " +
+                    "Join/leave/switch events and proxy-status embeds will NOT be sent to Discord. " +
+                    "Set it to your system-events channel ID in config.yml.");
+        } else if (bot.getTextChannelById(sysId) == null) {
+            errorLogger.accept("[Config] 'system-messages-channel-id' is set to '" + sysId + "' " +
+                    "but that channel could not be found. Check the ID and that the bot has access.");
+        }
+
+        if (channelRegistry == null || channelRegistry.isEmpty()) {
+            errorLogger.accept("[Config] No channels are configured under 'channels:' in config.yml. " +
+                    "Chat bridging (Minecraft <-> Discord) is disabled. " +
+                    "Add at least one entry to the 'channels:' list to enable it.");
+        } else {
+            channelRegistry.all().forEach((ch) -> {
+                if (ch.getChannelId().isEmpty() || ch.getChannelId().equalsIgnoreCase("000000000000")) {
+                    errorLogger.accept("[Config] Channel '" + ch.getName() + "' has no 'channel-id' set. " +
+                            "Messages for this channel will fail to send.");
+                } else if (bot.getTextChannelById(ch.getChannelId()) == null) {
+                    errorLogger.accept("[Config] Channel '" + ch.getName() + "' points to Discord channel ID '" +
+                            ch.getChannelId() + "' which could not be found. " +
+                            "Check the ID and that the bot has access.");
+                }
+            });
+        }
     }
 
     public void updateActivity() {
