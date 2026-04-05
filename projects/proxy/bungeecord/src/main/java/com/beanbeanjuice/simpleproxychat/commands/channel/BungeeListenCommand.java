@@ -28,7 +28,7 @@ public class BungeeListenCommand extends Command {
     private final PlayerChannelPrefsManager prefsManager;
 
     public BungeeListenCommand(final SimpleProxyChatBungee plugin, final String... aliases) {
-        super("listen", Permission.COMMAND_LISTEN.getPermissionNode(), aliases);
+        super("listen", null, aliases);
         this.plugin = plugin;
         this.config = plugin.getConfig();
         this.prefsManager = plugin.getChannelPrefsManager();
@@ -36,6 +36,14 @@ public class BungeeListenCommand extends Command {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
+        if (config.get(ConfigKey.USE_PERMISSIONS).asBoolean()
+                && !sender.hasPermission(Permission.COMMAND_LISTEN.getPermissionNode())
+                && sender instanceof ProxiedPlayer) {
+            String msg = config.get(ConfigKey.MINECRAFT_COMMAND_NO_PERMISSION).asString();
+            sender.sendMessage(Helper.convertToBungee(msg));
+            return;
+        }
+
         if (!(sender instanceof ProxiedPlayer player)) {
             String msg = config.get(ConfigKey.MINECRAFT_COMMAND_MUST_BE_PLAYER).asString();
             msg = CommonHelper.replaceKey(msg, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
