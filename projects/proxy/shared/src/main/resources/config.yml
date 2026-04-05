@@ -51,9 +51,9 @@ aliases:
 # advancedproxychat.unban - Unban a player from the proxy. ➕
 # advancedproxychat.whisper - Whisper to another player on the proxy. ➕
 # advancedproxychat.broadcast - Broadcast a message to everyone on the server. ➕
-# advancedproxychat.channels - View and toggle per-channel send/receive preferences. ➕
-# advancedproxychat.listen - Temporarily subscribe to a channel for N messages. ➕
-# advancedproxychat.history - View the last N messages from a channel. ➕
+# advancedproxychat.channels - View and toggle per-channel send/receive preferences. (always active)
+# advancedproxychat.listen - Temporarily subscribe to a channel for N messages. (always active)
+# advancedproxychat.history - View the last N messages from a channel. (always active)
 use-permissions: false
 
 # Only messages that start with this character will be sent through the plugin.

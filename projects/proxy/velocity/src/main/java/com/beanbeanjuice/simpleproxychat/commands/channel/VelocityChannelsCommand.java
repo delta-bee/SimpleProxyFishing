@@ -43,6 +43,7 @@ public class VelocityChannelsCommand implements SimpleCommand {
 
     @Override
     public boolean hasPermission(Invocation invocation) {
+        if (!config.get(ConfigKey.USE_PERMISSIONS).asBoolean()) return true;
         return invocation.source().hasPermission(Permission.COMMAND_CHANNELS.getPermissionNode());
     }
 

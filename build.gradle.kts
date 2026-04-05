@@ -104,11 +104,11 @@ subprojects {
         minimize()
         archiveClassifier.set("")
         archiveBaseName.set(project.name)
+        archiveVersion.set(provider { project.version as String })
         destinationDirectory.set(File(rootProject.projectDir, "libs"))
 
         doLast {
-            archiveVersion.set(project.version as String)
-            println("Compiling: " + project.name + "-" + project.version + ".jar")
+            println("Compiled: " + archiveFileName.get())
         }
     }
 
@@ -133,21 +133,27 @@ tasks.clean {
 
 tasks.register("cleanProxyJars") {
     doLast {
+        // Collect current versions so we know what to keep.
+        val keepNames = mutableSetOf<String>()
+        rootProject.subprojects.forEach { sub ->
+            val v = sub.version as? String ?: return@forEach
+            if (v.isNotEmpty()) keepNames.add("${sub.name}-${v}.jar")
+        }
+
         val filesToDelete = fileTree("libs") {
-            include(
-                "proxy*.jar",
-                "server*.jar",
-                "shared*.jar",
-                "projects.jar",
-                "common.jar"
-            )
-        }.files
+            include("**/*.jar")
+        }.files.filter { jar ->
+            // Delete internal aggregation jars and any versioned jar not matching current versions.
+            val name = jar.name
+            name.matches(Regex("(proxy|server|shared|projects|common)(-.+)?\\.jar")) ||
+                (!keepNames.contains(name) && name.matches(Regex(".+-\\d+\\.\\d+\\.\\d+.*\\.jar")))
+        }
 
         if (filesToDelete.isEmpty()) {
-            println("No proxy jars found to delete.")
+            println("No stale jars found.")
         } else {
             filesToDelete.forEach {
-                println("Deleting ${it.name}")
+                println("Deleting stale jar: ${it.name}")
                 it.delete()
             }
         }
