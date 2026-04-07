@@ -30,7 +30,7 @@ public class DiscordChatHandler extends ListenerAdapter {
      * Matches Discord user mentions ({@code <@123>}) and role mentions
      * ({@code <@&123>}) in raw message content.
      */
-    private static final Pattern PING_PATTERN = Pattern.compile("<@&?\\d+>");
+    private static final Pattern PING_PATTERN = Pattern.compile("<@[!&]?\\d+>");
 
     private final Config config;
     private final String selfBotId;
