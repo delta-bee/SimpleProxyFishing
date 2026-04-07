@@ -13,6 +13,7 @@ import java.util.Map;
 public enum ConfigKey {
     // CONFIG
     USE_DISCORD (ConfigFileType.CONFIG, "use-discord", Boolean.class),
+    DISCORD_DROP_PING_ATTEMPTS (ConfigFileType.CONFIG, "drop-ping-attempts", Boolean.class),
     BOT_TOKEN (ConfigFileType.CONFIG, "BOT-TOKEN", String.class),
     SYSTEM_MESSAGES_CHANNEL_ID (ConfigFileType.CONFIG, "system-messages-channel-id", String.class),
     BOT_ACTIVITY_STATUS (ConfigFileType.CONFIG, "bot-activity.status", String.class),

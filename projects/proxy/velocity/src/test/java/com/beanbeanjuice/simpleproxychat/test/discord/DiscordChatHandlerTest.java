@@ -59,6 +59,9 @@ public class DiscordChatHandlerTest {
         Mockito.when(config.get(ConfigKey.DISCORD_CHAT_ENABLED))
                 .thenReturn(new ConfigValueWrapper(true));
 
+        Mockito.when(config.get(ConfigKey.DISCORD_DROP_PING_ATTEMPTS))
+                .thenReturn(new ConfigValueWrapper(false));
+
         ChannelDefinition def = new ChannelDefinition("general", 'g', CHANNEL_ID, false, false, null, null);
         Mockito.when(config.getChannelRegistry())
                 .thenReturn(new ChannelRegistry(List.of(def)));
