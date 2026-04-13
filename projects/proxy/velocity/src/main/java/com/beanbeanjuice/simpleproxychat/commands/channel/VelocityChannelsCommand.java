@@ -148,6 +148,12 @@ public class VelocityChannelsCommand implements SimpleCommand {
                                       String baseCmd) {
         Component name = Component.text("  " + ch.getName() + " ", NamedTextColor.AQUA);
 
+        // Prefix hint
+        Component prefixHint = Component.text("[!" + ch.getPrefix() + "] ", NamedTextColor.YELLOW)
+                .hoverEvent(HoverEvent.showText(Component.text(
+                        "Type !" + ch.getPrefix() + " <message> to send to " + ch.getName() + " regardless of your send default.",
+                        NamedTextColor.GRAY)));
+
         // Send button
         boolean sendOn = prefs.isSend();
         Component sendBtn = Component.text("[Send: " + (sendOn ? "ON" : "OFF") + "]",
@@ -172,7 +178,7 @@ public class VelocityChannelsCommand implements SimpleCommand {
                               : "Click to start receiving from " + ch.getName(),
                         NamedTextColor.GRAY)));
 
-        return name.append(sendBtn).append(space).append(rcvBtn);
+        return name.append(prefixHint).append(sendBtn).append(space).append(rcvBtn);
     }
 
     private void sendUsage(Player player) {

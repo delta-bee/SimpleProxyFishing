@@ -8,6 +8,11 @@
 # True if you will be using Discord.
 use-discord: false
 
+# When true, any Discord message containing a ping attempt (<@id>, <@!id>, <@&id>) is dropped
+# before it reaches Minecraft players, and any Minecraft message containing one is sanitized
+# before it reaches Discord. A WARN is logged each time.
+drop-ping-attempts: true
+
 # Discord Bot Token (IGNORE IF use_discord = false).
 BOT-TOKEN: "TOKEN_HERE"
 
@@ -150,4 +155,4 @@ channels:
 
 
 # DO NOT TOUCH THIS
-file-version: 20
+file-version: 21

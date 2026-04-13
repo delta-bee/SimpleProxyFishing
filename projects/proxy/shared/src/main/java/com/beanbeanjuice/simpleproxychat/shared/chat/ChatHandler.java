@@ -34,11 +34,13 @@ import java.util.*;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ChatHandler {
 
     private static final String MINECRAFT_PLAYER_HEAD_URL = "https://crafthead.net/avatar/{PLAYER_UUID}";
+        private static final Pattern PING_PATTERN = Pattern.compile("<@[!&]?\\d+>");
 
     private final ISimpleProxyChat plugin;
     private final Config config;
@@ -196,6 +198,16 @@ public class ChatHandler {
     private void sendToDiscordChannel(ChannelDefinition channel, ChatMessageData chatMessageData,
                                       String playerName, UUID playerUUID, String serverName, String message) {
         String aliasedServerName = Helper.convertAlias(config, serverName);
+
+        // Strip ping attempts from the player message before it reaches Discord.
+        if (config.get(ConfigKey.DISCORD_DROP_PING_ATTEMPTS).asBoolean()) {
+            String sanitized = PING_PATTERN.matcher(message).replaceAll("[ping removed]");
+            if (!sanitized.equals(message)) {
+                System.err.printf("[AdvancedProxyChat] WARN: Stripped a ping attempt from %s's message before relaying to Discord channel '%s'.%n",
+                        playerName, channel.getName());
+                message = sanitized;
+            }
+        }
 
         String fmt = channel.getMcToDiscordFormat() != null
                 ? channel.getMcToDiscordFormat()

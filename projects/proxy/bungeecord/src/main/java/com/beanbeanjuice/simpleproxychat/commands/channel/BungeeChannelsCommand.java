@@ -134,6 +134,13 @@ public class BungeeChannelsCommand extends Command {
 
         ComponentBuilder builder = new ComponentBuilder("  " + ch.getName() + " ").color(ChatColor.AQUA);
 
+        // Prefix hint
+        TextComponent prefixHint = new TextComponent("[!" + ch.getPrefix() + "] ");
+        prefixHint.setColor(ChatColor.YELLOW);
+        prefixHint.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                new Text("Type !" + ch.getPrefix() + " <message> to send to " + ch.getName() + " regardless of your send default.")));
+        builder.append(prefixHint).reset();
+
         // Send button
         TextComponent sendBtn = new TextComponent("[Send: " + (sendOn ? "ON" : "OFF") + "]");
         sendBtn.setColor(sendOn ? ChatColor.GREEN : ChatColor.RED);
