@@ -8,6 +8,7 @@ import com.beanbeanjuice.simpleproxychat.commands.channel.VelocityHistoryCommand
 import com.beanbeanjuice.simpleproxychat.commands.channel.VelocityListenCommand;
 import com.beanbeanjuice.simpleproxychat.commands.whisper.VelocityReplyCommand;
 import com.beanbeanjuice.simpleproxychat.commands.whisper.VelocityWhisperCommand;
+import com.beanbeanjuice.simpleproxychat.commands.whisper.VelocityWhisperInterceptor;
 import com.beanbeanjuice.simpleproxychat.commands.ban.VelocityBanCommand;
 import com.beanbeanjuice.simpleproxychat.commands.ban.VelocityUnbanCommand;
 import com.beanbeanjuice.simpleproxychat.common.CommonHelper;
@@ -219,6 +220,9 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
 
         this.proxyServer.getEventManager().register(this, new VelocityPluginMessagingListener(this, serverListener));
         this.proxyServer.getChannelRegistrar().register(VelocityPluginMessagingListener.IDENTIFIER);
+
+        // Ensure whisper/reply commands are handled at proxy level and never forwarded to sub-servers.
+        this.proxyServer.getEventManager().register(this, new VelocityWhisperInterceptor(this));
 
         whisperHandler = new WhisperHandler();
     }

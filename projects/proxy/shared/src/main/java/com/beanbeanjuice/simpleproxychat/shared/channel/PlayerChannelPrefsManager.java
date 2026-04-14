@@ -30,11 +30,38 @@ public class PlayerChannelPrefsManager {
     // player UUID -> channel name (lower-case) -> prefs
     private final Map<UUID, Map<String, ChannelPrefs>> playerPrefs = new ConcurrentHashMap<>();
 
+    // player UUID -> global (non-channel) display preferences
+    private final Map<UUID, GlobalPrefs> globalPrefs = new ConcurrentHashMap<>();
+
     // channel name (lower-case) -> ring-buffer of the last MAX_HISTORY messages
     private final Map<String, Deque<String>> channelHistory = new ConcurrentHashMap<>();
 
     // player UUID -> channel name (lower-case) -> remaining listen-once messages
     private final Map<UUID, Map<String, Integer>> listenOnce = new ConcurrentHashMap<>();
+
+    // -------------------------------------------------------------------------
+    // Global preferences (not per-channel)
+    // -------------------------------------------------------------------------
+
+    public GlobalPrefs getGlobalPrefs(UUID playerId) {
+        return globalPrefs.computeIfAbsent(playerId, k -> new GlobalPrefs());
+    }
+
+    public boolean shouldSuppressGifs(UUID playerId) {
+        return getGlobalPrefs(playerId).isSuppressGifs();
+    }
+
+    public void setSuppressGifs(UUID playerId, boolean suppress) {
+        getGlobalPrefs(playerId).setSuppressGifs(suppress);
+    }
+
+    public boolean shouldUseDiscordNickname(UUID playerId) {
+        return getGlobalPrefs(playerId).isUseDiscordNickname();
+    }
+
+    public void setUseDiscordNickname(UUID playerId, boolean use) {
+        getGlobalPrefs(playerId).setUseDiscordNickname(use);
+    }
 
     // -------------------------------------------------------------------------
     // Preferences
@@ -151,11 +178,12 @@ public class PlayerChannelPrefsManager {
     /** Removes all stored preferences for a player (call on disconnect). */
     public void removePlayer(UUID playerId) {
         playerPrefs.remove(playerId);
+        globalPrefs.remove(playerId);
         listenOnce.remove(playerId);
     }
 
     // -------------------------------------------------------------------------
-    // Inner class
+    // Inner classes
     // -------------------------------------------------------------------------
 
     public static class ChannelPrefs {
@@ -171,6 +199,17 @@ public class PlayerChannelPrefsManager {
         public boolean isReceive() { return receive; }
         public void setSend(boolean send) { this.send = send; }
         public void setReceive(boolean receive) { this.receive = receive; }
+    }
+
+    /** Global per-player display preferences (not per-channel). */
+    public static class GlobalPrefs {
+        private boolean suppressGifs = true;        // default ON — GIF links are noisy
+        private boolean useDiscordNickname = false;  // default OFF — show username
+
+        public boolean isSuppressGifs() { return suppressGifs; }
+        public void setSuppressGifs(boolean v) { this.suppressGifs = v; }
+        public boolean isUseDiscordNickname() { return useDiscordNickname; }
+        public void setUseDiscordNickname(boolean v) { this.useDiscordNickname = v; }
     }
 }
 

@@ -65,6 +65,11 @@ public class BungeeCordPluginMessageListener implements PluginMessageListener {
         out.writeUTF(discordMessage);
         out.writeUTF(discordEmbedTitle);
         out.writeUTF(discordEmbedMessage);
+        // 1.0.6: send display name (/nick) so proxy can show it in Discord
+        String displayName = playerForParsing.getDisplayName()
+                .replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
+        if (displayName.isEmpty()) displayName = playerName;
+        out.writeUTF(displayName);
 
         Iterables.getFirst(Bukkit.getOnlinePlayers(), null).sendPluginMessage(plugin, channel, out.toByteArray());
     }

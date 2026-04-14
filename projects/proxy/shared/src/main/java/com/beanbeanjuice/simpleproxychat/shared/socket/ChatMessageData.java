@@ -13,6 +13,8 @@ public abstract class ChatMessageData extends MessageData {
     @Getter private final String playerName;
     @Getter private final UUID playerUUID;
     @Getter private final String message;
+    /** Display name from /nick, falls back to playerName if not set. */
+    @Getter private String displayName;
 
     // Chat
     public ChatMessageData(MessageType type, String servername, String playerName,
@@ -22,6 +24,7 @@ public abstract class ChatMessageData extends MessageData {
         this.playerName = playerName;
         this.playerUUID = playerUUID;
         this.message = message;
+        this.displayName = playerName;
     }
 
     public ChatMessageData(MessageType type, String servername, String playerName,
@@ -33,10 +36,15 @@ public abstract class ChatMessageData extends MessageData {
         this.playerName = playerName;
         this.playerUUID = playerUUID;
         this.message = message;
+        this.displayName = playerName;
         this.setMinecraftMessage(minecraftMessage);
         this.setDiscordMessage(discordMessage);
         this.setDiscordEmbedTitle(discordEmbedTitle);
         this.setDiscordEmbedMessage(discordEmbedMessage);
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = (displayName != null && !displayName.isBlank()) ? displayName : playerName;
     }
 
     @Override

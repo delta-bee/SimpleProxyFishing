@@ -45,13 +45,17 @@ public class BungeeCordPluginMessagingListener implements Listener {
         String parsedDiscordString = input.readUTF();
         String parsedDiscordEmbedTitle = input.readUTF();
         String parsedDiscordEmbedMessage = input.readUTF();
+        // 1.0.6: display name from /nick; gracefully absent if old helper installed
+        String displayName = tryReadUTF(input, playerName);
 
         ProxiedPlayer player = plugin.getProxy().getPlayer(playerName);
         ServerInfo serverInfo = plugin.getProxy().getServerInfo(serverName);
 
         BungeeChatMessageData messageData = new BungeeChatMessageData(
-                plugin, MessageType.CHAT, serverInfo, player, playerMessage, parsedMinecraftString, parsedDiscordString, parsedDiscordEmbedTitle, parsedDiscordEmbedMessage
+                plugin, MessageType.CHAT, serverInfo, player, playerMessage,
+                parsedMinecraftString, parsedDiscordString, parsedDiscordEmbedTitle, parsedDiscordEmbedMessage
         );
+        messageData.setDisplayName(displayName);
 
         this.listener.getChatHandler().chat(
                 messageData,
@@ -62,4 +66,9 @@ public class BungeeCordPluginMessagingListener implements Listener {
         );
     }
 
+    private static String tryReadUTF(ByteArrayDataInput in, String fallback) {
+        try { return in.readUTF(); } catch (Exception e) { return fallback; }
+    }
+
 }
+

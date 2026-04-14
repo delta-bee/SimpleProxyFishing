@@ -22,16 +22,8 @@ import net.md_5.bungee.api.plugin.Command;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
-/**
- * /channels [channel] [send|receive]
- *
- * With no arguments: displays a clickable toggle menu in chat. Each channel row
- * shows two clickable buttons — [Send: ON/OFF] and [Receive: ON/OFF] — that run
- * /channels &lt;channel&gt; send (or receive) when clicked.
- *
- * With arguments: toggles the named preference for the named channel directly.
- */
 public class BungeeChannelsCommand extends Command {
 
     private final SimpleProxyChatBungee plugin;
@@ -50,45 +42,73 @@ public class BungeeChannelsCommand extends Command {
         if (config.get(ConfigKey.USE_PERMISSIONS).asBoolean()
                 && !sender.hasPermission(Permission.COMMAND_CHANNELS.getPermissionNode())
                 && sender instanceof ProxiedPlayer) {
-            String msg = config.get(ConfigKey.MINECRAFT_COMMAND_NO_PERMISSION).asString();
-            sender.sendMessage(Helper.convertToBungee(msg));
+            sender.sendMessage(Helper.convertToBungee(config.get(ConfigKey.MINECRAFT_COMMAND_NO_PERMISSION).asString()));
             return;
         }
 
         if (!(sender instanceof ProxiedPlayer player)) {
-            String msg = config.get(ConfigKey.MINECRAFT_COMMAND_MUST_BE_PLAYER).asString();
-            msg = CommonHelper.replaceKey(msg, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
+            String msg = CommonHelper.replaceKey(config.get(ConfigKey.MINECRAFT_COMMAND_MUST_BE_PLAYER).asString(),
+                    "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
             sender.sendMessage(Helper.convertToBungee(msg));
             return;
         }
 
         ChannelRegistry registry = config.getChannelRegistry();
-        if (registry == null || registry.isEmpty()) {
-            String msg = config.get(ConfigKey.MINECRAFT_COMMAND_CHANNELS_NO_CHANNELS).asString();
-            msg = CommonHelper.replaceKey(msg, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
-            player.sendMessage(Helper.convertToBungee(msg));
-            return;
-        }
+        List<String> channelAliases = config.get(ConfigKey.CHANNELS_ALIASES).asList();
+        String baseCmd = channelAliases.isEmpty() ? "apc-channels" : channelAliases.get(0);
+        String prefix = config.get(ConfigKey.PLUGIN_PREFIX).asString();
 
-        // /channels  – show clickable toggle menu
+        // /channels — show menu
         if (args.length == 0) {
-            String header = config.get(ConfigKey.MINECRAFT_COMMAND_CHANNELS_HEADER).asString();
-            header = CommonHelper.replaceKey(header, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
-            player.sendMessage(Helper.convertToBungee(header));
+            if (registry == null || registry.isEmpty()) {
+                player.sendMessage(Helper.convertToBungee(CommonHelper.replaceKey(
+                        config.get(ConfigKey.MINECRAFT_COMMAND_CHANNELS_NO_CHANNELS).asString(), "plugin-prefix", prefix)));
+                return;
+            }
+            player.sendMessage(Helper.convertToBungee(CommonHelper.replaceKey(
+                    config.get(ConfigKey.MINECRAFT_COMMAND_CHANNELS_HEADER).asString(), "plugin-prefix", prefix)));
 
-            // Resolve the primary command name (first alias, or fallback "apc-channels")
-            List<String> channelAliases = config.get(ConfigKey.CHANNELS_ALIASES).asList();
-            String baseCmd = channelAliases.isEmpty() ? "apc-channels" : channelAliases.get(0);
+            // Global settings row
+            player.sendMessage(buildGlobalRow(player.getUniqueId(), baseCmd));
 
             for (ChannelDefinition ch : registry.all()) {
-                PlayerChannelPrefsManager.ChannelPrefs prefs = prefsManager.getPrefs(player.getUniqueId(), ch);
-                player.sendMessage(buildChannelRow(ch, prefs, baseCmd));
+                player.sendMessage(buildChannelRow(ch, prefsManager.getPrefs(player.getUniqueId(), ch), baseCmd));
             }
             return;
         }
 
-        if (args.length < 2) {
-            sendUsage(player);
+        // /channels global <gifs|nickname>
+        if (args[0].equalsIgnoreCase("global") && args.length >= 2) {
+            String setting = args[1].toLowerCase(Locale.ROOT);
+            switch (setting) {
+                case "gifs" -> {
+                    boolean nowOn = !prefsManager.shouldSuppressGifs(player.getUniqueId());
+                    prefsManager.setSuppressGifs(player.getUniqueId(), nowOn);
+                    String msg = CommonHelper.replaceKey(
+                            config.get(nowOn ? ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_GIFS_ON
+                                             : ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_GIFS_OFF).asString(),
+                            "plugin-prefix", prefix);
+                    player.sendMessage(Helper.convertToBungee(msg));
+                }
+                case "nickname" -> {
+                    boolean nowOn = !prefsManager.shouldUseDiscordNickname(player.getUniqueId());
+                    prefsManager.setUseDiscordNickname(player.getUniqueId(), nowOn);
+                    String msg = CommonHelper.replaceKey(
+                            config.get(nowOn ? ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_NICK_ON
+                                             : ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_NICK_OFF).asString(),
+                            "plugin-prefix", prefix);
+                    player.sendMessage(Helper.convertToBungee(msg));
+                }
+                default -> sendUsage(player);
+            }
+            return;
+        }
+
+        if (args.length < 2) { sendUsage(player); return; }
+
+        if (registry == null || registry.isEmpty()) {
+            player.sendMessage(Helper.convertToBungee(CommonHelper.replaceKey(
+                    config.get(ConfigKey.MINECRAFT_COMMAND_CHANNELS_NO_CHANNELS).asString(), "plugin-prefix", prefix)));
             return;
         }
 
@@ -96,36 +116,53 @@ public class BungeeChannelsCommand extends Command {
         if (maybeCh.isEmpty()) { sendUsage(player); return; }
 
         ChannelDefinition ch = maybeCh.get();
-        String type = args[1].toLowerCase(Locale.ROOT);
-        String prefix = config.get(ConfigKey.PLUGIN_PREFIX).asString();
-
-        switch (type) {
+        switch (args[1].toLowerCase(Locale.ROOT)) {
             case "send" -> {
                 boolean nowOn = !prefsManager.getPrefs(player.getUniqueId(), ch).isSend();
                 prefsManager.setSend(player.getUniqueId(), ch, nowOn);
-                ConfigKey msgKey = nowOn ? ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_SEND_ON
-                                         : ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_SEND_OFF;
-                String msg = CommonHelper.replaceKey(config.get(msgKey).asString(), "plugin-prefix", prefix);
-                msg = CommonHelper.replaceKey(msg, "channel", ch.getName());
+                String msg = CommonHelper.replaceKey(CommonHelper.replaceKey(
+                        config.get(nowOn ? ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_SEND_ON
+                                         : ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_SEND_OFF).asString(),
+                        "plugin-prefix", prefix), "channel", ch.getName());
                 player.sendMessage(Helper.convertToBungee(msg));
             }
             case "receive" -> {
                 boolean nowOn = !prefsManager.getPrefs(player.getUniqueId(), ch).isReceive();
                 prefsManager.setReceive(player.getUniqueId(), ch, nowOn);
-                ConfigKey msgKey = nowOn ? ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_RCV_ON
-                                         : ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_RCV_OFF;
-                String msg = CommonHelper.replaceKey(config.get(msgKey).asString(), "plugin-prefix", prefix);
-                msg = CommonHelper.replaceKey(msg, "channel", ch.getName());
+                String msg = CommonHelper.replaceKey(CommonHelper.replaceKey(
+                        config.get(nowOn ? ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_RCV_ON
+                                         : ConfigKey.MINECRAFT_COMMAND_CHANNELS_TOGGLED_RCV_OFF).asString(),
+                        "plugin-prefix", prefix), "channel", ch.getName());
                 player.sendMessage(Helper.convertToBungee(msg));
             }
             default -> sendUsage(player);
         }
     }
 
-    /**
-     * Builds a single channel row with two clickable toggle buttons:
-     *   &lt;channel name&gt;  [Send: ON]  [Receive: OFF]
-     */
+    private net.md_5.bungee.api.chat.BaseComponent[] buildGlobalRow(UUID playerId, String baseCmd) {
+        ComponentBuilder builder = new ComponentBuilder("  \u25B6 Global: ").color(ChatColor.GRAY);
+
+        boolean gifsOn = prefsManager.shouldSuppressGifs(playerId);
+        TextComponent gifsBtn = new TextComponent("[GIFs: " + (gifsOn ? "HIDE" : "SHOW") + "]");
+        gifsBtn.setColor(gifsOn ? ChatColor.YELLOW : ChatColor.GRAY);
+        gifsBtn.setBold(true);
+        gifsBtn.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + baseCmd + " global gifs"));
+        gifsBtn.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                new Text(gifsOn ? "GIF links hidden. Click to show." : "GIF links shown. Click to hide.")));
+        builder.append(gifsBtn).append("  ").reset();
+
+        boolean nickOn = prefsManager.shouldUseDiscordNickname(playerId);
+        TextComponent nickBtn = new TextComponent("[Discord: " + (nickOn ? "NICK" : "USER") + "]");
+        nickBtn.setColor(nickOn ? ChatColor.AQUA : ChatColor.WHITE);
+        nickBtn.setBold(true);
+        nickBtn.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + baseCmd + " global nickname"));
+        nickBtn.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                new Text(nickOn ? "Showing Discord nickname. Click for username."
+                               : "Showing Discord username. Click for nickname.")));
+        builder.append(nickBtn);
+        return builder.create();
+    }
+
     private net.md_5.bungee.api.chat.BaseComponent[] buildChannelRow(ChannelDefinition ch,
                                                                       PlayerChannelPrefsManager.ChannelPrefs prefs,
                                                                       String baseCmd) {
@@ -134,44 +171,37 @@ public class BungeeChannelsCommand extends Command {
 
         ComponentBuilder builder = new ComponentBuilder("  " + ch.getName() + " ").color(ChatColor.AQUA);
 
-        // Prefix hint
-        TextComponent prefixHint = new TextComponent("[!" + ch.getPrefix() + "] ");
-        prefixHint.setColor(ChatColor.YELLOW);
-        prefixHint.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                new Text("Type !" + ch.getPrefix() + " <message> to send to " + ch.getName() + " regardless of your send default.")));
-        builder.append(prefixHint).reset();
+        TextComponent pfx = new TextComponent("[!" + ch.getPrefix() + "] ");
+        pfx.setColor(ChatColor.YELLOW);
+        pfx.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                new Text("!" + ch.getPrefix() + " <msg> \u2192 this Discord channel only\n"
+                       + "! <msg> \u2192 MC network only\n!! <msg> \u2192 local server only")));
+        builder.append(pfx).reset();
 
-        // Send button
         TextComponent sendBtn = new TextComponent("[Send: " + (sendOn ? "ON" : "OFF") + "]");
         sendBtn.setColor(sendOn ? ChatColor.GREEN : ChatColor.RED);
         sendBtn.setBold(true);
-        sendBtn.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                "/" + baseCmd + " " + ch.getName() + " send"));
+        sendBtn.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + baseCmd + " " + ch.getName() + " send"));
         sendBtn.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                new Text(sendOn ? "Click to disable sending to " + ch.getName()
-                               : "Click to enable sending to " + ch.getName())));
+                new Text(sendOn ? "Click to stop sending to " + ch.getName()
+                               : "Click to start sending to " + ch.getName())));
+        builder.append(sendBtn).append("  ").reset();
 
-        builder.append(sendBtn);
-        builder.append("  ").reset();
-
-        // Receive button
         TextComponent rcvBtn = new TextComponent("[Receive: " + (rcvOn ? "ON" : "OFF") + "]");
         rcvBtn.setColor(rcvOn ? ChatColor.GREEN : ChatColor.RED);
         rcvBtn.setBold(true);
-        rcvBtn.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                "/" + baseCmd + " " + ch.getName() + " receive"));
+        rcvBtn.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + baseCmd + " " + ch.getName() + " receive"));
         rcvBtn.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                 new Text(rcvOn ? "Click to stop receiving from " + ch.getName()
                                : "Click to start receiving from " + ch.getName())));
-
         builder.append(rcvBtn);
         return builder.create();
     }
 
     private void sendUsage(ProxiedPlayer player) {
-        String msg = config.get(ConfigKey.MINECRAFT_COMMAND_CHANNELS_USAGE).asString();
-        msg = CommonHelper.replaceKey(msg, "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString());
-        player.sendMessage(Helper.convertToBungee(msg));
+        player.sendMessage(Helper.convertToBungee(CommonHelper.replaceKey(
+                config.get(ConfigKey.MINECRAFT_COMMAND_CHANNELS_USAGE).asString(),
+                "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString())));
     }
 }
 

@@ -48,6 +48,8 @@ public class VelocityPluginMessagingListener {
         String parsedDiscordString = input.readUTF();
         String parsedDiscordEmbedTitle = input.readUTF();
         String parsedDiscordEmbedMessage = input.readUTF();
+        // 1.0.6: display name from /nick; gracefully absent if old helper installed
+        String displayName = tryReadUTF(input, playerName);
 
         Optional<Player> player = plugin.getProxyServer().getPlayer(playerName);
         Optional<RegisteredServer> server = plugin.getProxyServer().getServer(serverName);
@@ -55,8 +57,10 @@ public class VelocityPluginMessagingListener {
         if (player.isEmpty() || server.isEmpty()) return;
 
         VelocityChatMessageData messageData = new VelocityChatMessageData(
-                plugin, MessageType.CHAT, server.get(), player.get(), playerMessage, parsedMinecraftString, parsedDiscordString, parsedDiscordEmbedTitle, parsedDiscordEmbedMessage
+                plugin, MessageType.CHAT, server.get(), player.get(), playerMessage,
+                parsedMinecraftString, parsedDiscordString, parsedDiscordEmbedTitle, parsedDiscordEmbedMessage
         );
+        messageData.setDisplayName(displayName);
 
         this.listener.getChatHandler().chat(
                 messageData,
@@ -67,4 +71,9 @@ public class VelocityPluginMessagingListener {
         );
     }
 
+    private static String tryReadUTF(ByteArrayDataInput in, String fallback) {
+        try { return in.readUTF(); } catch (Exception e) { return fallback; }
+    }
+
 }
+

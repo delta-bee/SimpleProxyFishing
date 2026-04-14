@@ -46,6 +46,10 @@ public enum ConfigKey {
     HISTORY_ALIASES  (ConfigFileType.CONFIG, "commands.history-aliases",  List.class),
     DISABLED_SERVERS (ConfigFileType.CONFIG, "disabled-servers", List.class),
 
+    // Added in file-version 22: global display preferences (1.0.6)
+    USE_DISCORD_NICKNAME           (ConfigFileType.CONFIG, "use-discord-nickname",           Boolean.class),
+    USE_MINECRAFT_NICK_FOR_DISCORD (ConfigFileType.CONFIG, "use-minecraft-nick-for-discord", Boolean.class),
+
     // MESSAGES
     PLUGIN_PREFIX (ConfigFileType.MESSAGES, "plugin-prefix", String.class),
 
@@ -103,6 +107,12 @@ public enum ConfigKey {
     MINECRAFT_COMMAND_HISTORY_EMPTY             (ConfigFileType.MESSAGES, "minecraft.command.history.empty",               String.class),
     MINECRAFT_COMMAND_HISTORY_USAGE             (ConfigFileType.MESSAGES, "minecraft.command.history.usage",               String.class),
     MINECRAFT_COMMAND_HISTORY_NO_SUCH_CHANNEL   (ConfigFileType.MESSAGES, "minecraft.command.history.no-such-channel",     String.class),
+
+    // Added in file-version 14 (1.0.6): global toggle messages
+    MINECRAFT_COMMAND_CHANNELS_TOGGLED_GIFS_ON  (ConfigFileType.MESSAGES, "minecraft.command.channels.toggled-gifs-on",   String.class),
+    MINECRAFT_COMMAND_CHANNELS_TOGGLED_GIFS_OFF (ConfigFileType.MESSAGES, "minecraft.command.channels.toggled-gifs-off",  String.class),
+    MINECRAFT_COMMAND_CHANNELS_TOGGLED_NICK_ON  (ConfigFileType.MESSAGES, "minecraft.command.channels.toggled-nick-on",   String.class),
+    MINECRAFT_COMMAND_CHANNELS_TOGGLED_NICK_OFF (ConfigFileType.MESSAGES, "minecraft.command.channels.toggled-nick-off",  String.class),
 
     DISCORD_JOIN_ENABLED (ConfigFileType.MESSAGES, "discord.join.enabled", Boolean.class),
     DISCORD_JOIN_MESSAGE (ConfigFileType.MESSAGES, "discord.join.message", String.class),

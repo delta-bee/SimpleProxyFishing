@@ -40,7 +40,12 @@ import java.util.stream.Collectors;
 public class ChatHandler {
 
     private static final String MINECRAFT_PLAYER_HEAD_URL = "https://crafthead.net/avatar/{PLAYER_UUID}";
-        private static final Pattern PING_PATTERN = Pattern.compile("<@[!&]?\\d+>");
+    private static final Pattern PING_PATTERN = Pattern.compile("<@[!&]?\\d+>");
+    /** Matches GIF URLs: direct .gif links and Tenor/Giphy embed links. */
+    private static final Pattern GIF_PATTERN = Pattern.compile(
+        "https?://\\S*\\.gif(?:\\?\\S*)?|https?://(?:tenor\\.com|giphy\\.com|media\\.giphy\\.com|c\\.tenor\\.com)\\S*",
+        Pattern.CASE_INSENSITIVE
+    );
 
     private final ISimpleProxyChat plugin;
     private final Config config;
@@ -105,44 +110,58 @@ public class ChatHandler {
 
         // ------------------------------------------------------------------
         // Multi-channel !flag routing
-        // If a ChannelRegistry is configured and the message starts with '!'
-        // parse the flag characters immediately after it and route to those
-        // channels only.  The actual message body is everything after the flags.
-        // e.g. "!wd hello" -> send "hello" to channels with prefix 'w' and 'd'.
+        //
+        //   !!<body>       → local server only (do not touch proxy or Discord)
+        //   ! <body>       → MC proxy network only (no Discord)
+        //   !<flags> <body>→ only the Discord channels for those flag letters
+        //                    (ignores user send-prefs, obeys server disable-send)
+        //   (no prefix)    → normal flow: MC proxy + all default-send channels
         // ------------------------------------------------------------------
         ChannelRegistry registry = config.getChannelRegistry();
-        boolean sentToChannel = false;
 
-        if (registry != null && !registry.isEmpty() && playerMessage.startsWith("!") && playerMessage.length() > 1) {
+        if (playerMessage.startsWith("!") && playerMessage.length() > 1) {
+            // !! = local server only: return without doing anything at proxy level
+            if (playerMessage.startsWith("!!")) return;
+
+            // Collect flag characters up to the first space
             int flagEnd = 1;
-            // Consume consecutive non-space characters as flags.
             while (flagEnd < playerMessage.length() && playerMessage.charAt(flagEnd) != ' ') flagEnd++;
-
             String flags = playerMessage.substring(1, flagEnd).toLowerCase(java.util.Locale.ROOT);
             String body = (flagEnd < playerMessage.length() ? playerMessage.substring(flagEnd + 1) : "").trim();
 
-            if (!body.isEmpty()) {
+            // Try to resolve flags as channel prefixes
+            if (!body.isEmpty() && registry != null && !registry.isEmpty()) {
                 Set<ChannelDefinition> targets = new LinkedHashSet<>();
                 for (char flag : flags.toCharArray()) {
                     registry.byPrefix(flag).ifPresent(targets::add);
                 }
-
                 if (!targets.isEmpty()) {
+                    // !flags body → those Discord channels only, skip MC proxy chat
                     for (ChannelDefinition channel : targets) {
                         if (channel.isDisableSend()) continue;
                         sendToDiscordChannel(channel, chatMessageData, playerName, playerUUID, serverName, body);
                     }
-                    sentToChannel = true;
-                    // Do NOT forward to normal MC proxy chat or the default Discord channel.
                     return;
                 }
             }
+
+            // ! alone (no recognised channel flags) → MC proxy network only, no Discord
+            String mcBody = body.isEmpty() ? flags : (flags + " " + body);
+            if (mcBody.isBlank()) return;
+            String mcMinecraft = CommonHelper.replaceKeys(config.get(ConfigKey.MINECRAFT_CHAT_MESSAGE).asString(),
+                    buildStandardReplacements(mcBody, playerName, playerUUID, serverName));
+            if (config.get(ConfigKey.CONSOLE_CHAT).asBoolean()) plugin.log(mcMinecraft);
+            if (config.get(ConfigKey.MINECRAFT_CHAT_ENABLED).asBoolean()) {
+                chatMessageData.chatSendToAllOtherPlayers(mcMinecraft);
+                lastMessagesHelper.addMessage(mcMinecraft);
+            }
+            return;
         }
 
         // ------------------------------------------------------------------
         // Default send: forward to all channels where the player has send enabled.
         // ------------------------------------------------------------------
-        if (!sentToChannel && registry != null && !registry.isEmpty()) {
+        if (registry != null && !registry.isEmpty()) {
             String finalPlayerMessage = playerMessage;
             registry.all().forEach(channel -> {
                 if (channel.isDisableSend()) return;
@@ -191,6 +210,25 @@ public class ChatHandler {
         chat(chatMessageData, minecraftMessage, discordMessage, discordEmbedTitle, discordEmbedMessage);
     }
 
+    /** Builds the standard replacement map used for MC-proxy and MC-only messages. */
+    private HashMap<String, String> buildStandardReplacements(String message, String playerName, UUID playerUUID, String serverName) {
+        String aliased = Helper.convertAlias(config, serverName);
+        return new HashMap<>(Map.ofEntries(
+                Map.entry("message", message),
+                Map.entry("server", aliased),
+                Map.entry("original_server", serverName),
+                Map.entry("to", aliased),
+                Map.entry("original_to", serverName),
+                Map.entry("player", playerName),
+                Map.entry("escaped_player", Helper.escapeString(playerName)),
+                Map.entry("epoch", String.valueOf(EpochHelper.getEpochSecond())),
+                Map.entry("time", getTimeString()),
+                Map.entry("plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString()),
+                Map.entry("prefix", getPrefix(playerUUID, aliased, serverName)),
+                Map.entry("suffix", getSuffix(playerUUID, aliased, serverName))
+        ));
+    }
+
     /**
      * Sends a player message to a specific Discord channel using the per-channel
      * or global mc-to-discord format string.
@@ -209,6 +247,11 @@ public class ChatHandler {
             }
         }
 
+        // Use /nick display name for Discord if the config opt-in is set.
+        String discordName = config.get(ConfigKey.USE_MINECRAFT_NICK_FOR_DISCORD).asBoolean()
+                ? chatMessageData.getDisplayName()
+                : playerName;
+
         String fmt = channel.getMcToDiscordFormat() != null
                 ? channel.getMcToDiscordFormat()
                 : config.get(ConfigKey.MC_TO_DISCORD_FORMAT_DEFAULT).asString();
@@ -217,8 +260,8 @@ public class ChatHandler {
                 Map.entry("message", message),
                 Map.entry("server", aliasedServerName),
                 Map.entry("original_server", serverName),
-                Map.entry("player", playerName),
-                Map.entry("escaped_player", Helper.escapeString(playerName)),
+                Map.entry("player", discordName),
+                Map.entry("escaped_player", Helper.escapeString(discordName)),
                 Map.entry("channel", channel.getName()),
                 Map.entry("epoch", String.valueOf(EpochHelper.getEpochSecond())),
                 Map.entry("time", getTimeString()),
@@ -412,29 +455,36 @@ public class ChatHandler {
         String discordMessage = event.getMessage().getContentStripped();
         String hex = "#" + Integer.toHexString(roleColor.getRGB()).substring(2);
         String channelName = channelDef.getName();
+        final String finalNickname = nickname;
+        final String finalUsername = username;
 
-        HashMap<String, String> replacements = new HashMap<>(Map.of(
+        // Pre-build both variants so we can pick per-player without formatting twice.
+        HashMap<String, String> replacementsUser = new HashMap<>(Map.of(
                 "role", String.format("<%s>%s</%s>", hex, roleName, hex),
-                "user", username,
-                "nick", nickname,
+                "user", finalUsername,
+                "nick", finalNickname,
                 "message", discordMessage,
                 "channel", channelName,
                 "epoch", String.valueOf(EpochHelper.getEpochSecond()),
                 "time", getTimeString(),
                 "plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString()
         ));
-        String formatted = CommonHelper.replaceKeys(message, replacements);
+        HashMap<String, String> replacementsNick = new HashMap<>(replacementsUser);
+        replacementsNick.put("user", finalNickname);
+
+        String formattedUser = CommonHelper.replaceKeys(message, replacementsUser);
+        String formattedNick = CommonHelper.replaceKeys(message, replacementsNick);
 
         if (!config.get(ConfigKey.MINECRAFT_DISCORD_ENABLED).asBoolean()) return;
 
-        // Log to console.
-        if (config.get(ConfigKey.CONSOLE_DISCORD_CHAT).asBoolean()) plugin.log(formatted);
+        // Log to console (use username variant as canonical).
+        if (config.get(ConfigKey.CONSOLE_DISCORD_CHAT).asBoolean()) plugin.log(formattedUser);
 
-        // Record history so /history can replay it.
-        channelPrefsManager.recordHistory(channelDef, formatted);
+        // Record history (username variant).
+        channelPrefsManager.recordHistory(channelDef, formattedUser);
 
-        // Deliver to each player individually, respecting their channel prefs.
-        plugin.sendPerPlayer(formatted, (player) -> {
+        // Deliver to each player individually, respecting their prefs.
+        plugin.sendPerPlayer(formattedUser, (player) -> {
             if (!channelPrefsManager.shouldReceive(player, channelDef)) return false;
 
             // Decrement listen-once and notify if expired.
@@ -448,7 +498,25 @@ public class ChatHandler {
                     plugin.sendToPlayer(player, expiredMsg);
                 }
             }
-            return true;
+
+            // Pick the right formatted string for this player's nickname preference.
+            String personal = channelPrefsManager.shouldUseDiscordNickname(player) ? formattedNick : formattedUser;
+
+            // Apply global GIF suppression.
+            if (channelPrefsManager.shouldSuppressGifs(player)) {
+                String stripped = GIF_PATTERN.matcher(personal).replaceAll("").trim();
+                if (stripped.isEmpty()) return false; // pure GIF, nothing left to show
+                plugin.sendToPlayer(player, stripped);
+                return false; // we already sent it manually
+            }
+
+            // If this player's string differs from the default (formattedUser), send manually.
+            if (!personal.equals(formattedUser)) {
+                plugin.sendToPlayer(player, personal);
+                return false;
+            }
+
+            return true; // let sendPerPlayer send formattedUser for us
         });
     }
 

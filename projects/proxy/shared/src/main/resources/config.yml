@@ -99,18 +99,22 @@ send-previous-messages-on-switch:
 # These require a restart in order to take place.
 commands:
   reload-aliases:
-    - "spc-reload"
+    - "apc-reload"
   chat-toggle-aliases:
-    - "spc-chat"
+    - "apc-chat"
   ban-aliases:
-    - "spc-ban"
+    - "apc-ban"
   unban-aliases:
-    - "spc-unban"
+    - "apc-unban"
   whisper-aliases:
     - "msg"
     - "apc-msg"
+    - "w"
+    - "tell"
+    - "whisper"
   reply-aliases:
-    - "spc-reply"
+    - "r"
+    - "apc-reply"
     - "apc-r"
   broadcast-aliases:
     - "broadcast"
@@ -129,6 +133,17 @@ commands:
 # Disable servers from sending/receiving proxy messages.
 disabled-servers:
   - example1
+
+# ==========================================================
+#                 DISPLAY PREFERENCES (1.0.6)
+# ==========================================================
+# When true, Discord->MC messages show the sender's server nickname.
+# Default false (username) for backwards compatibility.
+use-discord-nickname: false
+
+# When true, MC->Discord messages use the player's /nick display name.
+# Requires use-helper: true. Default false for backwards compatibility.
+use-minecraft-nick-for-discord: false
 
 # ==========================================================
 #                    MULTI-CHANNEL DISCORD
@@ -155,4 +170,4 @@ channels:
 
 
 # DO NOT TOUCH THIS
-file-version: 21
+file-version: 22

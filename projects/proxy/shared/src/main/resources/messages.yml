@@ -70,7 +70,11 @@ minecraft:
       toggled-receive-on:  "%plugin-prefix%&a%channel%: &7Receive &aenabled."
       toggled-receive-off: "%plugin-prefix%&c%channel%: &7Receive &cdisabled."
       no-channels: "%plugin-prefix%&cNo channels are configured."
-      usage: "%plugin-prefix%&7Usage: &b/channels &7[channel] &b[send|receive]"
+      usage: "%plugin-prefix%&7Usage: &b/channels &7[channel] &b[send|receive] &8| &b/channels global &b[gifs|nickname]"
+      toggled-gifs-on:  "%plugin-prefix%&aGIF suppression &aenabled &7globally."
+      toggled-gifs-off: "%plugin-prefix%&cGIF suppression &cdisabled &7globally."
+      toggled-nick-on:  "%plugin-prefix%&aDiscord messages will show &bNICKNAMES."
+      toggled-nick-off: "%plugin-prefix%&aDiscord messages will show &bUSERNAMES."
     listen:
       started: "%plugin-prefix%&7Listening to &b%channel% &7for the next &b%amount% &7message(s)."
       expired: "%plugin-prefix%&7Your listen session for &b%channel% &7has ended."
@@ -138,4 +142,4 @@ update-message: "&7There is an update! You are on &c%old%. New version is &a%new
 
 
 # DO NOT TOUCH THIS
-file-version: 13
+file-version: 14
