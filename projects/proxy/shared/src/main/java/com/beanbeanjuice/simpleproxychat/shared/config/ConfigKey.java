@@ -48,7 +48,6 @@ public enum ConfigKey {
 
     // Added in file-version 22: global display preferences (1.0.6)
     USE_DISCORD_NICKNAME           (ConfigFileType.CONFIG, "use-discord-nickname",           Boolean.class),
-    USE_MINECRAFT_NICK_FOR_DISCORD (ConfigFileType.CONFIG, "use-minecraft-nick-for-discord", Boolean.class),
 
     // MESSAGES
     PLUGIN_PREFIX (ConfigFileType.MESSAGES, "plugin-prefix", String.class),

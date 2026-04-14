@@ -109,6 +109,13 @@ public class SimpleProxyChatVelocity implements ISimpleProxyChat {
         registerListeners();
         registerCommands();
 
+        // Warn if the helper is not enabled — /nick display names won't reach Discord without it.
+        if (!config.get(ConfigKey.USE_HELPER).asBoolean()) {
+            this.getLogger().warn("[AdvancedProxyChat] WARN: 'use-helper' is false. " +
+                    "Player /nick display names cannot be forwarded to Discord. " +
+                    "Install the AdvancedProxyChatHelper on each sub-server and set use-helper: true to enable this.");
+        }
+
         // Start Channel Topic Updater
         this.proxyServer.getScheduler().buildTask(this, discordBot::channelUpdaterFunction).delay(1, TimeUnit.MINUTES).repeat(10, TimeUnit.MINUTES).schedule();
         this.proxyServer.getScheduler().buildTask(this, discordBot::updateActivity).delay(6, TimeUnit.MINUTES).repeat(6, TimeUnit.MINUTES).schedule();

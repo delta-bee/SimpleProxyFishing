@@ -140,10 +140,8 @@ disabled-servers:
 # When true, Discord->MC messages show the sender's server nickname.
 # Default false (username) for backwards compatibility.
 use-discord-nickname: false
-
-# When true, MC->Discord messages use the player's /nick display name.
-# Requires use-helper: true. Default false for backwards compatibility.
-use-minecraft-nick-for-discord: false
+# Note: MC->Discord messages ALWAYS use the player's /nick display name when
+# the helper plugin is installed. Without the helper, the plain username is used.
 
 # ==========================================================
 #                    MULTI-CHANNEL DISCORD

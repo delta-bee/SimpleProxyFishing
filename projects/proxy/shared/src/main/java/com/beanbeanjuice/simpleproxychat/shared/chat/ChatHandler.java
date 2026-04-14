@@ -172,6 +172,8 @@ public class ChatHandler {
 
         // Standard MC proxy chat + legacy single Discord channel.
         String finalPlayerMessage2 = playerMessage;
+        // Use /nick display name for Discord; falls back to playerName if helper isn't installed.
+        String displayName = chatMessageData.getDisplayName();
 
         String minecraftConfigString = config.get(ConfigKey.MINECRAFT_CHAT_MESSAGE).asString();
         String discordConfigString = config.get(ConfigKey.MINECRAFT_DISCORD_MESSAGE).asString();
@@ -184,8 +186,8 @@ public class ChatHandler {
                 Map.entry("original_server", serverName),
                 Map.entry("to", aliasedServerName),
                 Map.entry("original_to", serverName),
-                Map.entry("player", playerName),
-                Map.entry("escaped_player", Helper.escapeString(playerName)),
+                Map.entry("player", displayName),
+                Map.entry("escaped_player", Helper.escapeString(displayName)),
                 Map.entry("epoch", String.valueOf(EpochHelper.getEpochSecond())),
                 Map.entry("time", getTimeString()),
                 Map.entry("plugin-prefix", config.get(ConfigKey.PLUGIN_PREFIX).asString()),
@@ -247,10 +249,14 @@ public class ChatHandler {
             }
         }
 
-        // Use /nick display name for Discord if the config opt-in is set.
-        String discordName = config.get(ConfigKey.USE_MINECRAFT_NICK_FOR_DISCORD).asBoolean()
-                ? chatMessageData.getDisplayName()
-                : playerName;
+        // Always use the /nick display name when available; falls back to playerName automatically
+        // (ChatMessageData.setDisplayName guards against blank values).
+        // Display name is populated by the helper plugin. Without it, we fall back to playerName.
+        String discordName = chatMessageData.getDisplayName();
+        if (discordName.equals(playerName) && !config.get(ConfigKey.USE_HELPER).asBoolean()) {
+            plugin.log("[AdvancedProxyChat] WARN: Sending message to Discord as '" + playerName + "' " +
+                    "(no /nick available — helper plugin not enabled or not installed on sub-server).");
+        }
 
         String fmt = channel.getMcToDiscordFormat() != null
                 ? channel.getMcToDiscordFormat()
@@ -458,6 +464,8 @@ public class ChatHandler {
         final String finalNickname = nickname;
         final String finalUsername = username;
 
+        plugin.log("[DEBUG-NICK] username=" + finalUsername + " nickname=" + finalNickname);
+
         // Pre-build both variants so we can pick per-player without formatting twice.
         HashMap<String, String> replacementsUser = new HashMap<>(Map.of(
                 "role", String.format("<%s>%s</%s>", hex, roleName, hex),
@@ -500,7 +508,9 @@ public class ChatHandler {
             }
 
             // Pick the right formatted string for this player's nickname preference.
-            String personal = channelPrefsManager.shouldUseDiscordNickname(player) ? formattedNick : formattedUser;
+            boolean wantsNick = channelPrefsManager.shouldUseDiscordNickname(player);
+            String personal = wantsNick ? formattedNick : formattedUser;
+            plugin.log("[DEBUG-NICK] player=" + player + " wantsNick=" + wantsNick + " nick=" + finalNickname + " user=" + finalUsername);
 
             // Apply global GIF suppression.
             if (channelPrefsManager.shouldSuppressGifs(player)) {
